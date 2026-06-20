@@ -1,0 +1,10 @@
+[
+  {"command": "cl_predict",                    "default": "1",  "range": "0-1",         "description": "Client-side prediction"},
+  {"command": "cl_lagcompensation",            "default": "1",  "range": "0-1",         "description": "Server-side lag compensation for shooting"},
+  {"command": "cl_interp_hermite",             "default": "1",  "range": "0-1",         "description": "Hermite interpolation for smoother movement"},
+  {"command": "cl_buffer_bloat_msecs",         "default": "",   "range": "milliseconds","description": "Max buffer delay before rate lowers (CS2 only)"},
+  {"command": "mm_dedicated_search_maxping",   "default": "",   "range": "ping value",  "description": "Max ping for matchmaking server search"},
+  {"command": "net_allow_multicast",           "default": "1",  "range": "0-1",         "description": "Multicast toggle"},
+  {"command": "net_showudp",                   "default": "0",  "range": "0-1",         "description": "Print UDP packet info to console"},
+  {"command": "cq_netgraph_problem_show_auto", "default": "0",  "range": "0-1",         "description": "Shows ping, loss, choke in HUD"}
+]

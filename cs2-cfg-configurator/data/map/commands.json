@@ -1,0 +1,12 @@
+[
+  {"command": "cl_radar_always_centered",        "default": "1",   "range": "0-1",        "description": "Keeps radar centered on player; 0 = zoomed out on big maps"},
+  {"command": "cl_radar_rotate",                 "default": "1",   "range": "0-1",        "description": "Disables radar rotation; 0 = static radar"},
+  {"command": "cl_radar_scale",                  "default": "0.7", "range": "0.25-1.0",   "description": "Radar zoom level; smaller = more zoomed out"},
+  {"command": "cl_radar_icon_scale_min",          "default": "0.6", "range": "0.4-1.25",   "description": "Character dot size on radar"},
+  {"command": "cl_radar_square_with_scoreboard",  "default": "1",   "range": "0-1",        "description": "Radar becomes square when scoreboard is open"},
+  {"command": "cl_radar_square_always",           "default": "0",   "range": "0-1",        "description": "Permanently square radar (CS2 command)"},
+  {"command": "cl_radar_dynamic",                "default": "0",   "range": "0-1",        "description": "Radar grows/shrinks to include teammates & C4"},
+  {"command": "cl_hud_radar_scale",              "default": "1.0", "range": "0.8-1.3",    "description": "HUD radar size; larger = bigger radar"},
+  {"command": "radarvisdistance",                "default": "1000","range": "distance",   "description": "Max distance enemy shows on radar"},
+  {"command": "radarvismethod",                  "default": "1",   "range": "0-1",        "description": "Radar visibility method; 0 = classic, 1 = realistic"}
+]

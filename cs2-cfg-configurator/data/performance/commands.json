@@ -1,0 +1,4 @@
+[
+  {"command": "fps_max",     "default": "0",  "range": "0-300",  "description": "Frame cap; 0 = unlimited"},
+  {"command": "cl_showfps",  "default": "0",  "range": "0-3",    "description": "FPS counter: 1=FPS, 2=FPS+avg, 3=detailed"}
+]

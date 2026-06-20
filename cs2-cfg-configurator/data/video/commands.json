@@ -1,0 +1,3 @@
+[
+  {"command": "r_fullscreen_gamma", "default": "2.5", "range": "1-3", "description": "Brightness/gamma (improves colors)"}
+]
