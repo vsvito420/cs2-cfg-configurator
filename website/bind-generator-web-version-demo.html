@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+  <meta charset="utf-8">
+  <!-- This is a simple web version of the CS2 Bind Generator. It uses only HTML and JavaScript, no Python. The logic is directly in the browser. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CS2 Bind Generator</title>
+  <style>
+    :root {
+      color-scheme: dark
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #0b0f14;
+      color: #e8eef6
+    }
+
+    .card {
+      background: #121923;
+      border: 1px solid #243041;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 18px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    .items {
+      columns: 2;
+      column-gap: 24px
+    }
+
+    .item {
+      break-inside: avoid;
+      display: block;
+      margin: 8px 0
+    }
+
+    input[type=text],
+    select,
+    textarea,
+    button {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid #2b3a4d;
+      background: #0d141d;
+      color: #e8eef6;
+      padding: 10px 12px
+    }
+
+    button {
+      cursor: pointer;
+      background: #2d6cdf;
+      border: 0;
+      font-weight: 700
+    }
+
+    button:hover {
+      background: #2458b8
+    }
+
+    pre {
+      background: #06090d;
+      border: 1px solid #243041;
+      padding: 14px;
+      border-radius: 12px;
+      overflow: auto
+    }
+
+    .muted {
+      color: #9fb0c3
+    }
+
+    @media (max-width:760px) {
+
+      .grid,
+      .items {
+        grid-template-columns: 1fr;
+        columns: 1
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>CS2 Buy Bind Generator</h1>
+  <p class="muted">Nur HTML/JS, kein Python. Die Logik ist direkt im Browser.</p>
+
+  <div class="card grid">
+    <label>Bind-Taste
+      <input id="key" type="text" value="f1" placeholder="z.B. f1, mouse4, kp_1">
+    </label>
+    <label>Team
+      <select id="team">
+        <option value="Both">Both</option>
+        <option value="T">T</option>
+        <option value="CT">CT</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="card">
+    <h2>Weapons</h2>
+    <div id="weapons" class="items"></div>
+  </div>
+
+  <div class="card">
+    <h2>Utility</h2>
+    <div id="utility" class="items"></div>
+  </div>
+
+  <div class="card">
+    <button onclick="generate()">Generate Bind</button>
+  </div>
+
+  <div class="card">
+    <h2>Output</h2>
+    <pre id="out">bind "f1" ""</pre>
+  </div>
+
+  <script>
+    const items = [
+      { id: 'ak47', label: 'AK-47', cmd: 'buy ak47', team: 'T' },
+      { id: 'm4a1s', label: 'M4A1-S', cmd: 'buy m4a1_silencer', team: 'CT' },
+      { id: 'awp', label: 'AWP', cmd: 'buy awp', team: 'Both' },
+      { id: 'deagle', label: 'Desert Eagle', cmd: 'buy deagle', team: 'Both' },
+      { id: 'vesthelm', label: 'Kevlar + Helmet', cmd: 'buy vesthelm', team: 'Both' },
+      { id: 'defuser', label: 'Defuse Kit', cmd: 'buy defuser', team: 'CT' },
+      { id: 'flash1', label: 'Flashbang 1', cmd: 'buy flashbang', team: 'Both', max: 2 },
+      { id: 'flash2', label: 'Flashbang 2', cmd: 'buy flashbang', team: 'Both', max: 2 },
+      { id: 'smoke', label: 'Smoke', cmd: 'buy smokegrenade', team: 'Both', max: 1 },
+      { id: 'he', label: 'HE Grenade', cmd: 'buy hegrenade', team: 'Both', max: 1 },
+      { id: 'molotov', label: 'Molotov', cmd: 'buy molotov', team: 'T', max: 1 },
+      { id: 'inc', label: 'Incendiary', cmd: 'buy incgrenade', team: 'CT', max: 1 },
+    ];
+
+    const weapons = ['ak47', 'm4a1s', 'awp', 'deagle'];
+    const utility = ['vesthelm', 'defuser', 'flash1', 'flash2', 'smoke', 'he', 'molotov', 'inc'];
+
+    function render(list, target) {
+      document.getElementById(target).innerHTML = list.map(id => {
+        const i = items.find(x => x.id === id);
+        return `<label class="item"><input type="checkbox" value="${i.id}"> ${i.label} <span class="muted">(${i.cmd})</span></label>`;
+      }).join('');
+    }
+    render(weapons, 'weapons');
+    render(utility, 'utility');
+
+    function generate() {
+      const key = document.getElementById('key').value.trim() || 'f1';
+      const team = document.getElementById('team').value;
+      const checked = [...document.querySelectorAll('input[type=checkbox]:checked')].map(x => x.value);
+      const counts = {};
+      const cmds = [];
+      for (const id of checked) {
+        const item = items.find(x => x.id === id);
+        if (!(item.team === 'Both' || item.team === team)) continue;
+        if (item.max) {
+          counts[id] = (counts[id] || 0) + 1;
+          if (counts[id] > item.max) continue;
+        }
+        cmds.push(item.cmd);
+      }
+      document.getElementById('out').textContent = `bind "${key}" "${cmds.join('; ')}"`;
+    }
+  </script>
+</body>
+
+</html>
