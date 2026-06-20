@@ -8,6 +8,7 @@ class Sidebar(QListWidget):
         ("⚙️  CFG Editor", "cfg_editor"),
         ("🔀  Bind Switcher", "bind_switcher"),
         ("🛒  Buy Binds", "buy_binds"),
+        ("🎮  CFG Manager Settings", "CFG_MAN_settings"),
     ]
 
     def __init__(self, main_window):
