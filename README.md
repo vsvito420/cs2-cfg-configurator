@@ -1,4 +1,4 @@
-# CS2 CFG Configurator
+# CounterStrike 2 CFG Configurator (cs2)
 
 Ein modulares Desktop-Tool (Python / PySide6) zum Erstellen, Bearbeiten und Verwalten von CS2-Konfigurationsdateien.
 
