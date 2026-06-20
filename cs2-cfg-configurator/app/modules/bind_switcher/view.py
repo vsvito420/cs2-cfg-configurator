@@ -1,8 +1,12 @@
 # view.py – Bind Manager Haupt-UI
+import subprocess
+import sys
+from pathlib import Path
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTabWidget, QSplitter, QTextEdit, QScrollArea, QLineEdit,
-    QMessageBox, QFileDialog, QFrame
+    QMessageBox, QFrame
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -11,20 +15,19 @@ from .model import BindProfile, SimpleBind, ToggleBind, HoldBind, CfgBind
 from .generator import generate_profile
 from .widgets import SimpleBindRow, ToggleBindRow, HoldBindRow, CfgBindRow
 
+# Vordefinierter Output-Ordner (relativ zu diesem File: ../../../../configs/bind-manager/)
+OUTPUT_DIR = Path(__file__).parent.parent.parent.parent / "configs" / "bind-manager"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
 
 STYLE_ADD = """
     QPushButton {
-        background: #1e1e2e;
-        color: #6c7086;
-        border: 1px dashed #45475a;
-        border-radius: 8px;
-        padding: 8px;
-        font-size: 12px;
+        background: #1e1e2e; color: #6c7086;
+        border: 1px dashed #45475a; border-radius: 8px;
+        padding: 8px; font-size: 12px;
     }
     QPushButton:hover {
-        background: #24273a;
-        color: #cdd6f4;
-        border-color: #89b4fa;
+        background: #24273a; color: #cdd6f4; border-color: #89b4fa;
     }
 """
 STYLE_PRIMARY = """
@@ -43,6 +46,14 @@ STYLE_SEC = """
     }
     QPushButton:hover { background: #45475a; }
 """
+STYLE_FOLDER = """
+    QPushButton {
+        background: #313244; color: #f9e2af;
+        border: none; border-radius: 6px;
+        padding: 8px 14px; font-size: 13px;
+    }
+    QPushButton:hover { background: #45475a; }
+"""
 STYLE_DANGER = """
     QPushButton {
         background: transparent; color: #f38ba8;
@@ -58,7 +69,6 @@ TAB_ICONS = {
     "hold":   "🔥  Hold",
     "cfg":    "📁  CFG Exec",
 }
-
 TAB_HINTS = {
     "simple": "Taste → Befehl  (einmalig beim Drücken)",
     "toggle": "Taste wechselt bei jedem Druck zwischen State A ↔ B",
@@ -75,7 +85,7 @@ class BindManagerPage(QWidget):
         self._containers: dict[str, QWidget] = {}
         self._build()
 
-    # ─── Build ────────────────────────────────────────────────────────────────
+    # ─── Build ──────────────────────────────────────────────────────────────
 
     def _build(self):
         root = QHBoxLayout(self)
@@ -93,16 +103,16 @@ class BindManagerPage(QWidget):
         lv.setContentsMargins(0, 0, 0, 0)
         lv.setSpacing(0)
 
-        # Profilname-Header
+        # Header
         header_bar = QFrame()
         header_bar.setFixedHeight(48)
         header_bar.setStyleSheet("background:#181825; border-bottom:1px solid #313244;")
-        hb_layout = QHBoxLayout(header_bar)
-        hb_layout.setContentsMargins(16, 8, 16, 8)
-        lbl_title = QLabel("🔗  Bind Manager")
-        lbl_title.setStyleSheet("color:#cdd6f4; font-size:15px; font-weight:bold;")
-        hb_layout.addWidget(lbl_title)
-        hb_layout.addStretch()
+        hb = QHBoxLayout(header_bar)
+        hb.setContentsMargins(16, 8, 16, 8)
+        lbl = QLabel("🔗  Bind Manager")
+        lbl.setStyleSheet("color:#cdd6f4; font-size:15px; font-weight:bold;")
+        hb.addWidget(lbl)
+        hb.addStretch()
         name_lbl = QLabel("Profil:")
         name_lbl.setStyleSheet("color:#6c7086; font-size:12px;")
         self._profile_name = QLineEdit(self.profile.name)
@@ -112,8 +122,8 @@ class BindManagerPage(QWidget):
             "border-radius:4px; padding:4px 8px; font-size:12px;"
         )
         self._profile_name.textChanged.connect(lambda t: setattr(self.profile, 'name', t))
-        hb_layout.addWidget(name_lbl)
-        hb_layout.addWidget(self._profile_name)
+        hb.addWidget(name_lbl)
+        hb.addWidget(self._profile_name)
         lv.addWidget(header_bar)
 
         # Tabs
@@ -126,17 +136,11 @@ class BindManagerPage(QWidget):
                 border-bottom: 2px solid transparent;
                 margin-right: 1px; font-size: 12px;
             }
-            QTabBar::tab:selected {
-                color: #cdd6f4;
-                border-bottom: 2px solid #89b4fa;
-                background: #1e1e2e;
-            }
+            QTabBar::tab:selected { color: #cdd6f4; border-bottom: 2px solid #89b4fa; background: #1e1e2e; }
             QTabBar::tab:hover { color: #a6adc8; background: #1e1e2e; }
         """)
-
         for bt in ["simple", "toggle", "hold", "cfg"]:
             self._tabs.addTab(self._build_tab(bt), TAB_ICONS[bt])
-
         lv.addWidget(self._tabs, 1)
 
         # Aktions-Leiste
@@ -147,20 +151,22 @@ class BindManagerPage(QWidget):
         ab.setContentsMargins(16, 8, 16, 8)
         ab.setSpacing(10)
 
-        btn_gen  = QPushButton("⚡  Generate CFG")
+        btn_gen  = QPushButton("⚡  Generate & Save")
         btn_gen.setStyleSheet(STYLE_PRIMARY)
-        btn_gen.clicked.connect(self._generate)
+        btn_gen.setToolTip(f"Speichert direkt nach: {OUTPUT_DIR}")
+        btn_gen.clicked.connect(self._save)
 
-        btn_save = QPushButton("💾  Speichern")
-        btn_save.setStyleSheet(STYLE_SEC)
-        btn_save.clicked.connect(self._save)
+        btn_folder = QPushButton("📂  Ordner öffnen")
+        btn_folder.setStyleSheet(STYLE_FOLDER)
+        btn_folder.setToolTip(str(OUTPUT_DIR))
+        btn_folder.clicked.connect(self._open_folder)
 
-        btn_clr  = QPushButton("🗑  Leeren")
+        btn_clr = QPushButton("🗑  Leeren")
         btn_clr.setStyleSheet(STYLE_DANGER)
         btn_clr.clicked.connect(self._clear)
 
         ab.addWidget(btn_gen)
-        ab.addWidget(btn_save)
+        ab.addWidget(btn_folder)
         ab.addStretch()
         ab.addWidget(btn_clr)
         lv.addWidget(action_bar)
@@ -177,10 +183,15 @@ class BindManagerPage(QWidget):
         plbl.setStyleSheet("color:#89b4fa; font-size:13px; font-weight:bold;")
         ph.addWidget(plbl)
         ph.addStretch()
+
+        self._path_lbl = QLabel("")
+        self._path_lbl.setStyleSheet("color:#585b70; font-size:10px; font-style:italic;")
+        ph.addWidget(self._path_lbl)
+
         copy_btn = QPushButton("📋 Copy")
         copy_btn.setStyleSheet(STYLE_SEC)
         copy_btn.setFixedHeight(30)
-        copy_btn.clicked.connect(self._copy_preview)
+        copy_btn.clicked.connect(self._copy)
         ph.addWidget(copy_btn)
         rv.addLayout(ph)
 
@@ -191,9 +202,7 @@ class BindManagerPage(QWidget):
             background:#11111b; color:#cdd6f4;
             border:1px solid #313244; border-radius:6px; padding:10px;
         """)
-        self._preview.setPlaceholderText(
-            "// Klick auf ⚡ Generate CFG um den Output zu sehen..."
-        )
+        self._preview.setPlaceholderText("// Klick auf ⚡ Generate & Save um den Output zu sehen...")
         rv.addWidget(self._preview, 1)
 
         splitter.addWidget(left)
@@ -208,12 +217,10 @@ class BindManagerPage(QWidget):
         wv.setContentsMargins(12, 8, 12, 0)
         wv.setSpacing(6)
 
-        # Hint-Text
         hint = QLabel(TAB_HINTS[bt])
         hint.setStyleSheet("color:#585b70; font-size:11px; font-style:italic; padding:2px 0;")
         wv.addWidget(hint)
 
-        # Scroll-Bereich
         container = QWidget()
         container.setStyleSheet("background:transparent;")
         cl = QVBoxLayout(container)
@@ -237,20 +244,19 @@ class BindManagerPage(QWidget):
         add_btn.setFixedHeight(38)
         add_btn.clicked.connect(lambda _=False, b=bt: self._add(b))
         wv.addWidget(add_btn)
-
         return wrapper
 
-    # ─── Logik ────────────────────────────────────────────────────────────────
+    # ─── Logik ─────────────────────────────────────────────────────────────
 
     def _add(self, bt: str):
-        models    = {"simple": SimpleBind, "toggle": ToggleBind, "hold": HoldBind, "cfg": CfgBind}
-        widgets   = {"simple": SimpleBindRow, "toggle": ToggleBindRow, "hold": HoldBindRow, "cfg": CfgBindRow}
-        lists_map = {"simple": self.profile.simple_binds, "toggle": self.profile.toggle_binds,
-                     "hold": self.profile.hold_binds, "cfg": self.profile.cfg_binds}
+        model_cls  = {"simple": SimpleBind, "toggle": ToggleBind, "hold": HoldBind, "cfg": CfgBind}[bt]
+        widget_cls = {"simple": SimpleBindRow, "toggle": ToggleBindRow, "hold": HoldBindRow, "cfg": CfgBindRow}[bt]
+        list_ref   = {"simple": self.profile.simple_binds, "toggle": self.profile.toggle_binds,
+                      "hold": self.profile.hold_binds, "cfg": self.profile.cfg_binds}[bt]
 
-        m   = models[bt]()
-        row = widgets[bt](m)
-        lists_map[bt].append(m)
+        m   = model_cls()
+        row = widget_cls(m)
+        list_ref.append(m)
 
         layout = self._containers[bt].layout()
         layout.insertWidget(layout.count() - 1, row)
@@ -258,30 +264,44 @@ class BindManagerPage(QWidget):
         row.sig_delete.connect(lambda r=row, mod=m, b=bt: self._remove(r, mod, b))
 
     def _remove(self, row, model, bt: str):
-        lists_map = {"simple": self.profile.simple_binds, "toggle": self.profile.toggle_binds,
-                     "hold": self.profile.hold_binds, "cfg": self.profile.cfg_binds}
+        list_ref = {"simple": self.profile.simple_binds, "toggle": self.profile.toggle_binds,
+                    "hold": self.profile.hold_binds, "cfg": self.profile.cfg_binds}[bt]
         try:
-            lists_map[bt].remove(model)
+            list_ref.remove(model)
         except ValueError:
             pass
         self._rows[bt].remove(row)
         row.setParent(None)
         row.deleteLater()
 
-    def _generate(self):
-        self._preview.setPlainText(generate_profile(self.profile))
-
     def _save(self):
-        self._generate()
-        path, _ = QFileDialog.getSaveFileName(
-            self, "CFG speichern", f"{self.profile.name}.cfg", "CFG Files (*.cfg)"
-        )
-        if path:
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(self._preview.toPlainText())
-            QMessageBox.information(self, "✅ Gespeichert", f"Datei gespeichert:\n{path}")
+        """Generiert CFG und speichert direkt in configs/bind-manager/<profilname>.cfg"""
+        content = generate_profile(self.profile)
+        self._preview.setPlainText(content)
 
-    def _copy_preview(self):
+        safe_name = "".join(c for c in self.profile.name if c.isalnum() or c in ' _-').strip()
+        if not safe_name:
+            safe_name = "my_binds"
+        filename = safe_name.replace(' ', '_') + ".cfg"
+        out_path = OUTPUT_DIR / filename
+
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        self._path_lbl.setText(f"✓ {out_path.name}")
+        self._path_lbl.setStyleSheet("color:#a6e3a1; font-size:10px;")
+
+    def _open_folder(self):
+        """Oeffnet den Output-Ordner im Dateimanager (Windows/macOS/Linux)."""
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        if sys.platform == "win32":
+            subprocess.Popen(["explorer", str(OUTPUT_DIR)])
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", str(OUTPUT_DIR)])
+        else:
+            subprocess.Popen(["xdg-open", str(OUTPUT_DIR)])
+
+    def _copy(self):
         from PySide6.QtWidgets import QApplication
         QApplication.clipboard().setText(self._preview.toPlainText())
 
@@ -298,3 +318,4 @@ class BindManagerPage(QWidget):
             self.profile.hold_binds.clear()
             self.profile.cfg_binds.clear()
             self._preview.clear()
+            self._path_lbl.setText("")
