@@ -1,113 +1,154 @@
-# dashboard/view.py – Startseite des CS2 CFG Configurators
+# dashboard/view.py
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFrame, QScrollArea, QLineEdit, QSizePolicy, QGridLayout
+    QFrame, QScrollArea, QLineEdit, QSizePolicy, QGridLayout,
+    QFileDialog, QMessageBox
 )
-from PySide6.QtCore import Qt, QUrl, QTimer
-from PySide6.QtGui import QPixmap, QFont, QPainter, QPainterPath, QDesktopServices
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QDesktopServices, QColor, QPen
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 
-# Pfad-Konstanten
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 DATA_ROOT    = PROJECT_ROOT / "data"
 CONFIGS_DIR  = PROJECT_ROOT / "configs"
+SETTINGS_FILE = PROJECT_ROOT / "configs" / "app_settings.json"
 
 CATEGORY_META = {
-    "crosshair":   {"label": "🎯 Crosshair",    "folder": "crosshair"},
-    "viewmodel":   {"label": "🔫 Viewmodel",    "folder": "viewmodel"},
-    "map":         {"label": "🗺️  Map / Radar",  "folder": "map"},
-    "networking":  {"label": "🌐 Networking",   "folder": "networking"},
-    "performance": {"label": "⚡ Performance",   "folder": "performance"},
-    "video":       {"label": "🖥️  Video",        "folder": "video"},
-    "buy-binds":   {"label": "🛒 Buy Binds",    "folder": "buy-binds"},
+    "crosshair":   {"label": "Crosshair",    "icon": "🎯", "folder": "crosshair"},
+    "viewmodel":   {"label": "Viewmodel",    "icon": "🔫", "folder": "viewmodel"},
+    "map":         {"label": "Map / Radar",  "icon": "🗺️",  "folder": "map"},
+    "networking":  {"label": "Networking",   "icon": "🌐", "folder": "networking"},
+    "performance": {"label": "Performance",  "icon": "⚡", "folder": "performance"},
+    "video":       {"label": "Video",        "icon": "🖥️",  "folder": "video"},
+    "buy-binds":   {"label": "Buy Binds",    "icon": "🛒", "folder": "buy-binds"},
 }
 
-GITHUB_AVATAR_URL = "https://avatars.githubusercontent.com/u/vsvito420"
-GITHUB_AVATAR_FALLBACK = "https://github.com/vsvito420.png?size=100"
+GITHUB_AVATAR_URL = "https://github.com/vsvito420.png?size=100"
 
-# CS2 Standard-Pfade je OS
-def _default_cs2_path() -> str:
+COLORS = ["#89b4fa","#a6e3a1","#fab387","#f38ba8","#cba6f7","#94e2d5","#f9e2af"]
+
+# Bekannte Steam-Library-Orte auf Windows durchsuchen
+def _find_cs2_path() -> tuple[str, bool]:
+    """Gibt (pfad, gefunden) zurueck. Durchsucht alle gaengigen Steam-Locations."""
+    cs2_sub = Path("steamapps") / "common" / "Counter-Strike Global Offensive"
+
     if sys.platform == "win32":
-        return r"C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive"
+        candidates = []
+        # Standard Steam
+        candidates.append(Path(r"C:\Program Files (x86)\Steam") / cs2_sub)
+        candidates.append(Path(r"C:\Program Files\Steam") / cs2_sub)
+        # Alle Laufwerke A-Z durchsuchen
+        import string
+        for drive in string.ascii_uppercase:
+            p = Path(f"{drive}:\\") / "SteamLibrary" / cs2_sub
+            candidates.append(p)
+            p2 = Path(f"{drive}:\\") / "Steam" / cs2_sub
+            candidates.append(p2)
+            p3 = Path(f"{drive}:\\") / "Games" / "Steam" / cs2_sub
+            candidates.append(p3)
+        for c in candidates:
+            if c.exists():
+                return str(c), True
+        return str(Path(r"C:\Program Files (x86)\Steam") / cs2_sub), False
+
     elif sys.platform == "darwin":
-        return "~/Library/Application Support/Steam/steamapps/common/Counter-Strike Global Offensive"
-    return "~/.steam/steam/steamapps/common/Counter-Strike Global Offensive"
+        p = Path("~/Library/Application Support/Steam").expanduser() / cs2_sub
+        return str(p), p.exists()
+    else:
+        for base in [Path("~/.steam/steam"), Path("~/.local/share/Steam")]:
+            p = base.expanduser() / cs2_sub
+            if p.exists():
+                return str(p), True
+        return str(Path("~/.steam/steam").expanduser() / cs2_sub), False
 
 
-# ── Style-Konstanten ───────────────────────────────────────────────────────────────
+def _load_saved_cs2_path() -> str | None:
+    if SETTINGS_FILE.exists():
+        try:
+            data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+            return data.get("cs2_path")
+        except Exception:
+            pass
+    return None
 
-CARD_STYLE = """
-    QFrame {
-        background: #24273a;
-        border: 1px solid #313244;
-        border-radius: 12px;
-    }
-"""
+
+def _save_cs2_path(path: str):
+    data = {}
+    if SETTINGS_FILE.exists():
+        try:
+            data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    data["cs2_path"] = path
+    SETTINGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+# ── Styles ─────────────────────────────────────────────────────────────────
+CARD_STYLE = "QFrame { background:#24273a; border:1px solid #313244; border-radius:12px; }"
 STYLE_LAUNCH = """
     QPushButton {
-        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-            stop:0 #89b4fa, stop:1 #74c7ec);
-        color: #1e1e2e;
-        border: none; border-radius: 8px;
-        padding: 10px 28px;
-        font-size: 14px; font-weight: bold;
+        background: qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #89b4fa,stop:1 #74c7ec);
+        color:#1e1e2e; border:none; border-radius:8px;
+        padding:10px 28px; font-size:14px; font-weight:bold;
     }
-    QPushButton:hover {
-        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-            stop:0 #b4d0ff, stop:1 #a0e0f5);
-    }
-    QPushButton:pressed { background: #585b70; }
+    QPushButton:hover { background:#b4d0ff; }
 """
 STYLE_SEC = """
     QPushButton {
-        background: #313244; color: #cdd6f4;
-        border: none; border-radius: 6px;
-        padding: 8px 16px; font-size: 12px;
+        background:#313244; color:#cdd6f4; border:none;
+        border-radius:6px; padding:7px 14px; font-size:12px;
     }
-    QPushButton:hover { background: #45475a; }
+    QPushButton:hover { background:#45475a; }
+"""
+STYLE_DEPLOY = """
+    QPushButton {
+        background:#a6e3a1; color:#1e1e2e; border:none;
+        border-radius:6px; padding:7px 16px; font-size:12px; font-weight:bold;
+    }
+    QPushButton:hover { background:#c0f0bb; }
+"""
+STYLE_WARN = """
+    QPushButton {
+        background:#fab387; color:#1e1e2e; border:none;
+        border-radius:6px; padding:7px 14px; font-size:12px;
+    }
+    QPushButton:hover { background:#ffd0a8; }
 """
 INPUT_STYLE = """
     QLineEdit {
-        background: #1e1e2e; color: #cdd6f4;
-        border: 1px solid #45475a; border-radius: 6px;
-        padding: 6px 10px; font-size: 12px;
-        font-family: 'Consolas', monospace;
+        background:#1e1e2e; color:#cdd6f4;
+        border:1px solid #45475a; border-radius:6px;
+        padding:6px 10px; font-size:12px;
+        font-family:'Consolas',monospace;
     }
-    QLineEdit:focus { border: 1px solid #89b4fa; }
+    QLineEdit:focus { border:1px solid #89b4fa; }
 """
 
 
 class RoundAvatar(QLabel):
-    """Zeigt ein rundes Avatar-Bild."""
     def __init__(self, size=72, parent=None):
         super().__init__(parent)
         self._size = size
         self.setFixedSize(size, size)
         self._pixmap = None
-        self._load_avatar()
-
-    def _load_avatar(self):
         self._mgr = QNetworkAccessManager(self)
-        req = QNetworkRequest(QUrl(GITHUB_AVATAR_FALLBACK))
+        req = QNetworkRequest(QUrl(GITHUB_AVATAR_URL))
         reply = self._mgr.get(req)
         reply.finished.connect(lambda: self._on_loaded(reply))
 
     def _on_loaded(self, reply: QNetworkReply):
         if reply.error() == QNetworkReply.NoError:
-            data = reply.readAll()
             px = QPixmap()
-            px.loadFromData(data)
+            px.loadFromData(reply.readAll())
             if not px.isNull():
-                self._pixmap = px.scaled(
-                    self._size, self._size,
-                    Qt.KeepAspectRatioByExpanding,
-                    Qt.SmoothTransformation
-                )
+                self._pixmap = px.scaled(self._size, self._size,
+                    Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
                 self.update()
         reply.deleteLater()
 
@@ -115,64 +156,63 @@ class RoundAvatar(QLabel):
         if not self._pixmap:
             super().paintEvent(event)
             return
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
         path = QPainterPath()
         path.addEllipse(0, 0, self._size, self._size)
-        painter.setClipPath(path)
-        painter.drawPixmap(0, 0, self._pixmap)
-        # Rand
-        painter.setPen(Qt.NoPen)
-        from PySide6.QtGui import QColor, QPen
-        pen = QPen(QColor("#89b4fa"), 2)
-        painter.setPen(pen)
-        painter.setBrush(Qt.NoBrush)
-        painter.drawEllipse(1, 1, self._size - 2, self._size - 2)
+        p.setClipPath(path)
+        p.drawPixmap(0, 0, self._pixmap)
+        p.setPen(QPen(QColor("#89b4fa"), 2))
+        p.setBrush(Qt.NoBrush)
+        p.drawEllipse(1, 1, self._size - 2, self._size - 2)
 
 
 class StatCard(QFrame):
-    """Kleine Info-Kachel: Icon + Zahl + Label."""
-    def __init__(self, icon: str, count: int, label: str, color: str = "#89b4fa", parent=None):
+    def __init__(self, icon, count, label, sublabel, color="#89b4fa", parent=None):
         super().__init__(parent)
         self.setStyleSheet(CARD_STYLE)
-        self.setFixedHeight(90)
+        self.setFixedHeight(96)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
         v = QVBoxLayout(self)
-        v.setContentsMargins(16, 12, 16, 12)
+        v.setContentsMargins(16, 12, 16, 10)
         v.setSpacing(2)
-
         top = QHBoxLayout()
         ico = QLabel(icon)
-        ico.setStyleSheet("font-size: 20px; background: transparent; border: none;")
+        ico.setStyleSheet("font-size:18px; background:transparent; border:none;")
         num = QLabel(str(count))
-        num.setStyleSheet(f"color:{color}; font-size:26px; font-weight:bold; background:transparent; border:none;")
+        num.setStyleSheet(f"color:{color}; font-size:24px; font-weight:bold; background:transparent; border:none;")
         top.addWidget(ico)
         top.addStretch()
         top.addWidget(num)
         v.addLayout(top)
-
         lbl = QLabel(label)
-        lbl.setStyleSheet("color:#6c7086; font-size:11px; background:transparent; border:none;")
+        lbl.setStyleSheet("color:#cdd6f4; font-size:12px; font-weight:bold; background:transparent; border:none;")
+        sub = QLabel(sublabel)
+        sub.setStyleSheet("color:#6c7086; font-size:10px; background:transparent; border:none;")
         v.addWidget(lbl)
+        v.addWidget(sub)
 
 
 class DashboardPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._cs2_path: str = ""
+        self._status_lbl: QLabel = None
+        self._path_edit: QLineEdit = None
         self._build()
+        self._init_cs2_path()
+
+    # ── Build ─────────────────────────────────────────────────────────────
 
     def _build(self):
-        # Outer scroll
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
-
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet(
-            "QScrollArea { border:none; background:#181825; }"
-            "QScrollBar:vertical { background:#181825; width:7px; border-radius:3px; }"
-            "QScrollBar::handle:vertical { background:#45475a; border-radius:3px; }"
+            "QScrollArea{border:none;background:#181825;}"
+            "QScrollBar:vertical{background:#181825;width:7px;border-radius:3px;}"
+            "QScrollBar::handle:vertical{background:#45475a;border-radius:3px;}"
         )
         inner = QWidget()
         inner.setStyleSheet("background:#181825;")
@@ -181,145 +221,227 @@ class DashboardPage(QWidget):
 
         root = QVBoxLayout(inner)
         root.setContentsMargins(32, 28, 32, 32)
-        root.setSpacing(24)
+        root.setSpacing(22)
 
-        # ── Hero-Bereich ──
+        # ── Hero ──
         hero = QFrame()
         hero.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
-                    stop:0 #1e1e2e, stop:1 #24273a);
-                border: 1px solid #313244;
-                border-radius: 14px;
-            }
+            QFrame { background:qlineargradient(x1:0,y1:0,x2:1,y2:1,
+                stop:0 #1e1e2e,stop:1 #24273a);
+                border:1px solid #313244; border-radius:14px; }
         """)
-        hero_layout = QHBoxLayout(hero)
-        hero_layout.setContentsMargins(28, 24, 28, 24)
-        hero_layout.setSpacing(20)
-
-        # Avatar
-        avatar = RoundAvatar(80)
-        hero_layout.addWidget(avatar)
-
-        # Text
-        text_col = QVBoxLayout()
-        text_col.setSpacing(4)
-        greeting = QLabel("👋  Hey vsvito420!")
-        greeting.setStyleSheet("color:#cdd6f4; font-size:22px; font-weight:bold; background:transparent; border:none;")
-        subtitle = QLabel("CS2 CFG Configurator  –  dein modulares Config-Tool")
-        subtitle.setStyleSheet("color:#6c7086; font-size:13px; background:transparent; border:none;")
-        text_col.addWidget(greeting)
-        text_col.addWidget(subtitle)
-        hero_layout.addLayout(text_col, 1)
-
-        # CS2 starten
+        hl = QHBoxLayout(hero)
+        hl.setContentsMargins(28, 22, 28, 22)
+        hl.setSpacing(18)
+        hl.addWidget(RoundAvatar(76))
+        tc = QVBoxLayout()
+        tc.setSpacing(4)
+        g = QLabel("🎮  CS2 CFG Configurator")
+        g.setStyleSheet("color:#cdd6f4;font-size:20px;font-weight:bold;background:transparent;border:none;")
+        s = QLabel("Servus! Hier verwaltest du deine CS2 Configs, Binds und Einstellungen.")
+        s.setStyleSheet("color:#6c7086;font-size:12px;background:transparent;border:none;")
+        tc.addWidget(g)
+        tc.addWidget(s)
+        hl.addLayout(tc, 1)
         btn_launch = QPushButton("▶️  CS2 starten")
         btn_launch.setStyleSheet(STYLE_LAUNCH)
-        btn_launch.setFixedHeight(44)
-        btn_launch.clicked.connect(
-            lambda: QDesktopServices.openUrl(QUrl("steam://rungameid/730"))
-        )
-        hero_layout.addWidget(btn_launch)
-
+        btn_launch.setFixedHeight(42)
+        btn_launch.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("steam://rungameid/730")))
+        hl.addWidget(btn_launch)
         root.addWidget(hero)
 
-        # ── Statistiken ──
-        sec_lbl = QLabel("📊  Command-Kategorien")
-        sec_lbl.setStyleSheet("color:#a6adc8; font-size:13px; font-weight:bold;")
-        root.addWidget(sec_lbl)
+        # ── Stats: Commands ──
+        lbl1 = QLabel("📊  Verfügbare Commands pro Kategorie")
+        lbl1.setStyleSheet("color:#a6adc8;font-size:12px;font-weight:bold;")
+        root.addWidget(lbl1)
 
         grid = QGridLayout()
-        grid.setSpacing(12)
-
-        COLORS = ["#89b4fa", "#a6e3a1", "#fab387", "#f38ba8", "#cba6f7", "#94e2d5", "#f9e2af"]
-        col_idx = 0
-        row_idx = 0
+        grid.setSpacing(10)
+        col, row = 0, 0
         for i, (key, meta) in enumerate(CATEGORY_META.items()):
-            folder = DATA_ROOT / meta["folder"] / "commands.json"
+            path = DATA_ROOT / meta["folder"] / "commands.json"
             count = 0
-            if folder.exists():
+            if path.exists():
                 try:
-                    data = json.loads(folder.read_text(encoding="utf-8"))
-                    count = len(data)
+                    count = len(json.loads(path.read_text(encoding="utf-8")))
                 except Exception:
-                    count = 0
-            card = StatCard(meta["label"].split()[0], count, meta["label"], COLORS[i % len(COLORS)])
-            grid.addWidget(card, row_idx, col_idx)
-            col_idx += 1
-            if col_idx >= 4:
-                col_idx = 0
-                row_idx += 1
-
-        # Gespeicherte CFGs in configs/
-        total_cfgs = sum(1 for f in CONFIGS_DIR.rglob("*.cfg")) if CONFIGS_DIR.exists() else 0
-        bind_cfgs  = sum(1 for f in (CONFIGS_DIR / "bind-manager").rglob("*.cfg")) if (CONFIGS_DIR / "bind-manager").exists() else 0
-        cfg_card   = StatCard("📁", total_cfgs, "Gespeicherte .cfg Dateien", "#cba6f7")
-        bind_card  = StatCard("🔗", bind_cfgs,  "Bind Manager CFGs", "#f5c2e7")
-        grid.addWidget(cfg_card,  row_idx, col_idx)
-        col_idx += 1
-        if col_idx >= 4:
-            col_idx = 0
-            row_idx += 1
-        grid.addWidget(bind_card, row_idx, col_idx)
-
+                    pass
+            card = StatCard(meta["icon"], count, meta["label"], f"{count} Commands verfügbar", COLORS[i % len(COLORS)])
+            grid.addWidget(card, row, col)
+            col += 1
+            if col >= 4:
+                col = 0
+                row += 1
+        # CFG-Dateien Stats
+        total_cfgs = sum(1 for _ in CONFIGS_DIR.rglob("*.cfg")) if CONFIGS_DIR.exists() else 0
+        bind_cfgs  = sum(1 for _ in (CONFIGS_DIR/"bind-manager").rglob("*.cfg")) if (CONFIGS_DIR/"bind-manager").exists() else 0
+        grid.addWidget(StatCard("📁", total_cfgs, "Gespeicherte CFGs", "Alle .cfg im configs/ Ordner", "#cba6f7"), row, col)
+        col += 1
+        if col >= 4: col = 0; row += 1
+        grid.addWidget(StatCard("🔗", bind_cfgs, "Bind Manager CFGs", "In configs/bind-manager/", "#f5c2e7"), row, col)
         root.addLayout(grid)
 
-        # ── CS2 Pfad ──
+        # ── CS2 Pfad + Deploy ──
         path_card = QFrame()
         path_card.setStyleSheet(CARD_STYLE)
         pv = QVBoxLayout(path_card)
         pv.setContentsMargins(20, 16, 20, 16)
         pv.setSpacing(10)
 
-        path_hdr = QHBoxLayout()
-        path_title = QLabel("📂  CS2 Installations-Pfad")
-        path_title.setStyleSheet("color:#cdd6f4; font-size:13px; font-weight:bold; background:transparent; border:none;")
-        path_hdr.addWidget(path_title)
-        path_hdr.addStretch()
+        phdr = QHBoxLayout()
+        pt = QLabel("📂  CS2 Pfad & CFG-Deploy")
+        pt.setStyleSheet("color:#cdd6f4;font-size:13px;font-weight:bold;background:transparent;border:none;")
+        phdr.addWidget(pt)
+        phdr.addStretch()
+        self._status_lbl = QLabel("⌛  wird gesucht...")
+        self._status_lbl.setStyleSheet("color:#6c7086;font-size:11px;background:transparent;border:none;")
+        phdr.addWidget(self._status_lbl)
+        pv.addLayout(phdr)
 
-        # Erkannte Pfad-Status
-        default_path = _default_cs2_path()
-        detected = Path(default_path).expanduser().exists()
-        status_lbl = QLabel("✅  Gefunden" if detected else "⚠️  Nicht gefunden")
-        status_lbl.setStyleSheet(
-            ("color:#a6e3a1;" if detected else "color:#fab387;") +
-            " font-size:11px; background:transparent; border:none;"
-        )
-        path_hdr.addWidget(status_lbl)
-        pv.addLayout(path_hdr)
-
-        path_row = QHBoxLayout()
-        self._path_edit = QLineEdit(default_path)
+        prow = QHBoxLayout()
+        self._path_edit = QLineEdit()
+        self._path_edit.setPlaceholderText("CS2 Installationspfad (z.B. G:\\SteamLibrary\\...)")
         self._path_edit.setStyleSheet(INPUT_STYLE)
-        self._path_edit.setReadOnly(True)
+        self._path_edit.textChanged.connect(self._on_path_changed)
 
-        btn_open_cs2 = QPushButton("📂  Ordner")
+        btn_browse = QPushButton("📂  Durchsuchen")
+        btn_browse.setStyleSheet(STYLE_SEC)
+        btn_browse.clicked.connect(self._browse_cs2)
+
+        btn_open_cs2 = QPushButton("📁  CS2-Ordner")
         btn_open_cs2.setStyleSheet(STYLE_SEC)
-        btn_open_cs2.clicked.connect(self._open_cs2_folder)
+        btn_open_cs2.clicked.connect(lambda: self._open_dir(Path(self._path_edit.text())))
 
-        btn_open_cfg = QPushButton("📂  CFG-Ordner")
+        btn_open_cfg = QPushButton("📁  CFG-Ordner")
         btn_open_cfg.setStyleSheet(STYLE_SEC)
         btn_open_cfg.clicked.connect(self._open_cfg_folder)
 
-        path_row.addWidget(self._path_edit, 1)
-        path_row.addWidget(btn_open_cs2)
-        path_row.addWidget(btn_open_cfg)
-        pv.addLayout(path_row)
+        prow.addWidget(self._path_edit, 1)
+        prow.addWidget(btn_browse)
+        prow.addWidget(btn_open_cs2)
+        prow.addWidget(btn_open_cfg)
+        pv.addLayout(prow)
 
-        hint = QLabel("💡 CS2 cfg-Ordner:  <installpfad>/game/csgo/cfg/")
-        hint.setStyleSheet("color:#585b70; font-size:10px; font-style:italic; background:transparent; border:none;")
+        # Deploy-Bereich
+        deploy_frame = QFrame()
+        deploy_frame.setStyleSheet("QFrame{background:#1e1e2e;border:1px dashed #45475a;border-radius:8px;}")
+        dv = QHBoxLayout(deploy_frame)
+        dv.setContentsMargins(14, 10, 14, 10)
+        dv.setSpacing(12)
+        deploy_lbl = QLabel("🚀  CFGs ins Spielverzeichnis kopieren")
+        deploy_lbl.setStyleSheet("color:#a6adc8;font-size:12px;background:transparent;border:none;")
+        deploy_sub = QLabel("Kopiert alle CFGs aus configs/ nach <cs2>/game/csgo/cfg/")
+        deploy_sub.setStyleSheet("color:#585b70;font-size:10px;background:transparent;border:none;")
+        text_col2 = QVBoxLayout()
+        text_col2.setSpacing(2)
+        text_col2.addWidget(deploy_lbl)
+        text_col2.addWidget(deploy_sub)
+        dv.addLayout(text_col2, 1)
+
+        self._btn_deploy = QPushButton("🚀  Deploy CFGs")
+        self._btn_deploy.setStyleSheet(STYLE_DEPLOY)
+        self._btn_deploy.setFixedHeight(36)
+        self._btn_deploy.clicked.connect(self._deploy_cfgs)
+        dv.addWidget(self._btn_deploy)
+        pv.addWidget(deploy_frame)
+
+        hint = QLabel("💡 CFG-Zielpfad: <CS2-Pfad>/game/csgo/cfg/")
+        hint.setStyleSheet("color:#585b70;font-size:10px;font-style:italic;background:transparent;border:none;")
         pv.addWidget(hint)
 
         root.addWidget(path_card)
         root.addStretch()
 
-    def _open_cs2_folder(self):
-        path = Path(self._path_edit.text()).expanduser()
-        self._open_dir(path)
+    # ── CS2-Pfad Logik ────────────────────────────────────────────────────────────
+
+    def _init_cs2_path(self):
+        # 1. gespeicherten Pfad laden
+        saved = _load_saved_cs2_path()
+        if saved and Path(saved).exists():
+            self._set_path(saved, found=True)
+            return
+        # 2. automatisch suchen
+        found_path, found = _find_cs2_path()
+        if found:
+            self._set_path(found_path, found=True)
+            _save_cs2_path(found_path)
+        else:
+            # 3. nicht gefunden -> Dialog
+            self._set_path(found_path, found=False)
+            self._ask_for_path()
+
+    def _ask_for_path(self):
+        QMessageBox.information(
+            self,
+            "CS2-Pfad nicht gefunden",
+            "CS2 konnte nicht automatisch gefunden werden.\n"
+            "Bitte w\u00e4hle den Installationsordner manuell.\n\n"
+            "Beispiel: G:\\SteamLibrary\\steamapps\\common\\Counter-Strike Global Offensive"
+        )
+        self._browse_cs2()
+
+    def _browse_cs2(self):
+        path = QFileDialog.getExistingDirectory(
+            self,
+            "CS2 Installationsordner ausw\u00e4hlen",
+            self._path_edit.text() or "C:\\",
+        )
+        if path:
+            self._set_path(path, found=True)
+            _save_cs2_path(path)
+
+    def _set_path(self, path: str, found: bool):
+        self._cs2_path = path
+        self._path_edit.setText(path)
+        if self._status_lbl:
+            if found:
+                self._status_lbl.setText("✅  Gefunden")
+                self._status_lbl.setStyleSheet("color:#a6e3a1;font-size:11px;background:transparent;border:none;")
+            else:
+                self._status_lbl.setText("⚠️  Nicht gefunden")
+                self._status_lbl.setStyleSheet("color:#fab387;font-size:11px;background:transparent;border:none;")
+
+    def _on_path_changed(self, text: str):
+        self._cs2_path = text
+        p = Path(text)
+        if p.exists():
+            _save_cs2_path(text)
+            self._status_lbl.setText("✅  Gefunden")
+            self._status_lbl.setStyleSheet("color:#a6e3a1;font-size:11px;background:transparent;border:none;")
+        else:
+            self._status_lbl.setText("⚠️  Nicht gefunden")
+            self._status_lbl.setStyleSheet("color:#fab387;font-size:11px;background:transparent;border:none;")
+
+    # ── Deploy ───────────────────────────────────────────────────────────────────
+
+    def _deploy_cfgs(self):
+        cs2 = Path(self._path_edit.text())
+        target = cs2 / "game" / "csgo" / "cfg"
+        if not cs2.exists():
+            QMessageBox.warning(self, "Pfad fehlt", "CS2-Pfad ist nicht gesetzt oder existiert nicht.\nBitte zuerst den Pfad setzen.")
+            return
+        target.mkdir(parents=True, exist_ok=True)
+        cfg_files = list(CONFIGS_DIR.rglob("*.cfg"))
+        if not cfg_files:
+            QMessageBox.information(self, "Keine CFGs", "Keine .cfg-Dateien in configs/ gefunden.\nErstelle zuerst CFGs mit dem CFG Editor oder Bind Manager.")
+            return
+        copied = []
+        for src in cfg_files:
+            if src.name == ".gitkeep":
+                continue
+            dst = target / src.name
+            shutil.copy2(src, dst)
+            copied.append(src.name)
+        QMessageBox.information(
+            self, "✅  Deploy erfolgreich",
+            f"{len(copied)} CFG(s) kopiert nach:\n{target}\n\n" + "\n".join(copied)
+        )
 
     def _open_cfg_folder(self):
-        path = Path(self._path_edit.text()).expanduser() / "game" / "csgo" / "cfg"
-        self._open_dir(path)
+        cs2 = Path(self._path_edit.text())
+        target = cs2 / "game" / "csgo" / "cfg"
+        target.mkdir(parents=True, exist_ok=True)
+        self._open_dir(target)
 
     def _open_dir(self, path: Path):
         if not path.exists():

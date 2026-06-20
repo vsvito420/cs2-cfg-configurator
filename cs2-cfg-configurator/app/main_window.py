@@ -1,11 +1,10 @@
 # main_window.py
-from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QHBoxLayout, QStackedWidget, QLabel, QVBoxLayout,
-)
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStackedWidget, QLabel, QVBoxLayout
 from PySide6.QtCore import Qt
 
 from app.sidebar import Sidebar
 from app.modules.dashboard.view import DashboardPage
+from app.modules.command_viewer.view import CommandViewerPage
 from app.modules.settings_page.view import SettingsPage
 from app.modules.buy_binds.view import BuyBindsPage
 from app.modules.buy_binds.viewer import BuyBindsViewer
@@ -30,7 +29,6 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("CS2 CFG Configurator")
         self.resize(1200, 700)
-
         self.settings = settings_manager.load()
 
         central = QWidget(self)
@@ -40,23 +38,22 @@ class MainWindow(QMainWindow):
         self._root_layout.setSpacing(0)
 
         self.stack = QStackedWidget(self)
-
         self._pages = {
-            "dashboard":         DashboardPage(),          # Startseite
-            "cfg_editor":        CfgEditorPage(),
-            "bind_switcher":     BindManagerPage(),
-            "buy_binds_viewer":  BuyBindsViewer(),
-            "buy_binds_editor":  BuyBindsPage(),
-            "buy_binds_header":  ModulePage("\U0001f6d2  Buy Binds"),
-            "CFG_MAN_settings":  SettingsPage(self),
+            "dashboard":        DashboardPage(),
+            "cfg_editor":       CfgEditorPage(),
+            "command_viewer":   CommandViewerPage(),
+            "bind_switcher":    BindManagerPage(),
+            "buy_binds_viewer": BuyBindsViewer(),
+            "buy_binds_editor": BuyBindsPage(),
+            "buy_binds_header": ModulePage("🛒  Buy Binds"),
+            "CFG_MAN_settings": SettingsPage(self),
         }
         for page in self._pages.values():
             self.stack.addWidget(page)
 
         self.sidebar = Sidebar(self)
         self._apply_settings_to_ui()
-        self.sidebar.set_active_key("dashboard")   # Dashboard beim Start
-
+        self.sidebar.set_active_key("dashboard")
         self._root_layout.addWidget(self.sidebar)
         self._root_layout.addWidget(self.stack, 1)
 
@@ -72,6 +69,6 @@ class MainWindow(QMainWindow):
     def _apply_settings_to_ui(self):
         s = self.settings
         bg = s.get("app_bg", "#181825")
-        self.centralWidget().setStyleSheet(f"background-color: {bg};")
-        self.stack.setStyleSheet(f"background-color: {bg};")
+        self.centralWidget().setStyleSheet(f"background-color:{bg};")
+        self.stack.setStyleSheet(f"background-color:{bg};")
         self.sidebar.apply_style(s)
