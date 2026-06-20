@@ -1,3 +1,10 @@
-/cs2-cfg-configurator/app/__pycache__
-/.venv
-
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.env
