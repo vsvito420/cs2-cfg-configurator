@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 from app.sidebar import Sidebar
 from app.modules.dashboard.view import DashboardPage
 from app.modules.command_viewer.view import CommandViewerPage
+from app.modules.settings_reader.view import SettingsReaderPage
 from app.modules.settings_page.view import SettingsPage
 from app.modules.buy_binds.view import BuyBindsPage
 from app.modules.buy_binds.viewer import BuyBindsViewer
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
             "cfg_editor":       CfgEditorPage(),
             "command_viewer":   CommandViewerPage(),
             "bind_switcher":    BindManagerPage(),
+            "settings_reader":  SettingsReaderPage(),
             "buy_binds_viewer": BuyBindsViewer(),
             "buy_binds_editor": BuyBindsPage(),
             "buy_binds_header": ModulePage("🛒  Buy Binds"),
