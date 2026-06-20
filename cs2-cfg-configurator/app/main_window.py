@@ -8,6 +8,7 @@ from app.sidebar import Sidebar
 from app.modules.settings_page.view import SettingsPage
 from app.modules.buy_binds.view import BuyBindsPage
 from app.modules.buy_binds.viewer import BuyBindsViewer
+from app.modules.cfg_editor.view import CfgEditorPage
 from app import settings_manager
 
 
@@ -39,7 +40,7 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget(self)
 
         self._pages = {
-            "cfg_editor":        ModulePage("\u2699\ufe0f  CFG Editor \u2013 kommt bald"),
+            "cfg_editor":        CfgEditorPage(),
             "bind_switcher":     ModulePage("\U0001f500  Bind Switcher \u2013 kommt bald"),
             "buy_binds_viewer":  BuyBindsViewer(),
             "buy_binds_editor":  BuyBindsPage(),
@@ -67,9 +68,7 @@ class MainWindow(QMainWindow):
 
     def _apply_settings_to_ui(self):
         s = self.settings
-        # App Hintergrund
         bg = s.get("app_bg", "#181825")
         self.centralWidget().setStyleSheet(f"background-color: {bg};")
         self.stack.setStyleSheet(f"background-color: {bg};")
-        # Sidebar
         self.sidebar.apply_style(s)
