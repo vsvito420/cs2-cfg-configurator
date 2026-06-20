@@ -1,0 +1,13 @@
+[
+  {"id": "flash1",    "label": "Flashbang 1",      "cmd": "buy flashbang",    "team": "Both", "max": 2, "group": "flash"},
+  {"id": "flash2",    "label": "Flashbang 2",      "cmd": "buy flashbang",    "team": "Both", "max": 2, "group": "flash"},
+  {"id": "smoke",     "label": "Smoke Grenade",   "cmd": "buy smokegrenade", "team": "Both", "max": 1, "group": "smoke"},
+  {"id": "he",        "label": "HE Grenade",       "cmd": "buy hegrenade",    "team": "Both", "max": 1, "group": "he"},
+  {"id": "molotov",   "label": "Molotov",          "cmd": "buy molotov",      "team": "T",    "max": 1, "group": "fire"},
+  {"id": "incgrenade","label": "Incendiary (CT)", "cmd": "buy incgrenade",   "team": "CT",   "max": 1, "group": "fire"},
+  {"id": "decoy",     "label": "Decoy",            "cmd": "buy decoy",        "team": "Both", "max": 1, "group": "decoy"},
+  {"id": "vesthelm",  "label": "Kevlar + Helmet", "cmd": "buy vesthelm",     "team": "Both", "max": 1, "group": "armor"},
+  {"id": "vest",      "label": "Kevlar only",      "cmd": "buy vest",         "team": "Both", "max": 1, "group": "armor"},
+  {"id": "defuser",   "label": "Defuse Kit",       "cmd": "buy defuser",      "team": "CT",   "max": 1, "group": "kit"},
+  {"id": "taser",     "label": "Zeus x27",         "cmd": "buy taser",        "team": "Both", "max": 1, "group": "taser"}
+]
