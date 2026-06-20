@@ -1,23 +1,128 @@
 [
-  {"command": "cl_crosshairstyle",       "default": "2",    "range": "0-5",         "description": "Crosshair style: 2=Dynamic, 4=Static, 5=Hybrid"},
-  {"command": "cl_crosshairsize",        "default": "4.42", "range": "2-10",        "description": "Length of crosshair lines"},
-  {"command": "cl_crosshairthickness",   "default": "0.90", "range": "decimals",    "description": "Thickness of crosshair lines"},
-  {"command": "cl_crosshairgap",         "default": "1",    "range": "decimals",    "description": "Gap between center and crosshair pips"},
-  {"command": "cl_crosshairalpha",       "default": "255",  "range": "0-255",       "description": "Transparency (opacity)"},
-  {"command": "cl_crosshaircolor",       "default": "5",    "range": "1-5",         "description": "Color: 1=Green, 2=Cyan, 3=Blue, 4=Red, 5=Default"},
-  {"command": "cl_crosshaircolor_r",     "default": "255",  "range": "0-255",       "description": "Red color value (RGB)"},
-  {"command": "cl_crosshaircolor_g",     "default": "0",    "range": "0-255",       "description": "Green color value"},
-  {"command": "cl_crosshaircolor_b",     "default": "255",  "range": "0-255",       "description": "Blue color value"},
-  {"command": "cl_crosshairdot",         "default": "0",    "range": "0-1",         "description": "Add center dot"},
-  {"command": "cl_crosshair_drawoutline","default": "1",    "range": "0-1",         "description": "Black outline around crosshair"},
-  {"command": "cl_crosshair_outlinethickness", "default": "1.36", "range": "0-3",  "description": "Outline thickness"},
-  {"command": "cl_crosshair_recoil",     "default": "1",    "range": "0-1",         "description": "Crosshair follows recoil/spread"},
-  {"command": "cl_crosshair_t",          "default": "1",    "range": "0-1",         "description": "T-style crosshair shape"},
-  {"command": "cl_crosshair_sniper_show_normal_inaccuracy", "default": "0", "range": "0-1", "description": "Show inaccuracy for snipers"},
-  {"command": "cl_crosshair_sniper_width", "default": "1",  "range": "1+",          "description": "Sniper scope crosshair line width"},
-  {"command": "cl_crosshair_dynamic_splitalpha_innermod",  "default": "1",   "range": "0-1",   "description": "Dynamic style alpha inner modifier"},
-  {"command": "cl_crosshair_dynamic_splitalpha_outermod",  "default": "0.5", "range": "0.3-1", "description": "Dynamic style alpha outer modifier"},
-  {"command": "cl_crosshair_dynamic_maxdist_splitratio",   "default": "0.35","range": "0-1",   "description": "Dynamic split ratio for inner/outer pips"},
-  {"command": "cl_crosshair_dynamic_splitdist",            "default": "6",   "range": "distance","description": "Distance where crosshair splits (style 2)"},
-  {"command": "crosshair",               "default": "1",    "range": "0-1",         "description": "Enable/disable crosshair entirely"}
+  {
+    "command": "cl_crosshairstyle",
+    "default": "2",
+    "range": "0-5",
+    "description": "Crosshair style: 2=Dynamic, 4=Static, 5=Hybrid"
+  },
+  {
+    "command": "cl_crosshairsize",
+    "default": "4.42",
+    "range": "0.01-1234",
+    "description": "Length of crosshair lines"
+  },
+  {
+    "command": "cl_crosshairthickness",
+    "default": "0.90",
+    "range": "0.01-1234",
+    "description": "Thickness of crosshair lines"
+  },
+  {
+    "command": "cl_crosshairgap",
+    "default": "1",
+    "range": "0.01-1234",
+    "description": "Gap between center and crosshair pips, can be negative"
+  },
+  {
+    "command": "cl_crosshairalpha",
+    "default": "255",
+    "range": "0-255",
+    "description": "Transparency (opacity)"
+  },
+  {
+    "command": "cl_crosshaircolor",
+    "default": "5",
+    "range": "1-5",
+    "description": "Color: 1=Green, 2=Cyan, 3=Blue, 4=Red, 5=Default"
+  },
+  {
+    "command": "cl_crosshaircolor_r",
+    "default": "255",
+    "range": "0-255",
+    "description": "Red color value (RGB)"
+  },
+  {
+    "command": "cl_crosshaircolor_g",
+    "default": "0",
+    "range": "0-255",
+    "description": "Green color value"
+  },
+  {
+    "command": "cl_crosshaircolor_b",
+    "default": "255",
+    "range": "0-255",
+    "description": "Blue color value"
+  },
+  {
+    "command": "cl_crosshairdot",
+    "default": "0",
+    "range": "0-1",
+    "description": "Add center dot"
+  },
+  {
+    "command": "cl_crosshair_drawoutline",
+    "default": "1",
+    "range": "0-1",
+    "description": "Black outline around crosshair"
+  },
+  {
+    "command": "cl_crosshair_outlinethickness",
+    "default": "1.36",
+    "range": "0-3",
+    "description": "Outline thickness"
+  },
+  {
+    "command": "cl_crosshair_recoil",
+    "default": "1",
+    "range": "0-1",
+    "description": "Crosshair follows recoil/spread"
+  },
+  {
+    "command": "cl_crosshair_t",
+    "default": "1",
+    "range": "0-1",
+    "description": "T-style crosshair shape"
+  },
+  {
+    "command": "cl_crosshair_sniper_show_normal_inaccuracy",
+    "default": "0",
+    "range": "0-1",
+    "description": "Show inaccuracy for snipers"
+  },
+  {
+    "command": "cl_crosshair_sniper_width",
+    "default": "1",
+    "range": "1+",
+    "description": "Sniper scope crosshair line width"
+  },
+  {
+    "command": "cl_crosshair_dynamic_splitalpha_innermod",
+    "default": "1",
+    "range": "0-1",
+    "description": "Dynamic style alpha inner modifier"
+  },
+  {
+    "command": "cl_crosshair_dynamic_splitalpha_outermod",
+    "default": "0.5",
+    "range": "0.3-1",
+    "description": "Dynamic style alpha outer modifier"
+  },
+  {
+    "command": "cl_crosshair_dynamic_maxdist_splitratio",
+    "default": "0.35",
+    "range": "0-1",
+    "description": "Dynamic split ratio for inner/outer pips"
+  },
+  {
+    "command": "cl_crosshair_dynamic_splitdist",
+    "default": "6",
+    "range": "distance",
+    "description": "Distance where crosshair splits (style 2)"
+  },
+  {
+    "command": "crosshair",
+    "default": "1",
+    "range": "0-1",
+    "description": "Enable/disable crosshair entirely"
+  }
 ]

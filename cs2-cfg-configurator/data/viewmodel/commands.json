@@ -1,10 +1,50 @@
 [
-  {"command": "viewmodel_fov",      "default": "68",  "range": "54-68",    "description": "Weapon FOV (max 68)"},
-  {"command": "viewmodel_offset_x", "default": "0",   "range": "float",    "description": "Weapon left/right position"},
-  {"command": "viewmodel_offset_y", "default": "0",   "range": "float",    "description": "Weapon forward/back position"},
-  {"command": "viewmodel_offset_z", "default": "0",   "range": "float",    "description": "Weapon up/down position"},
-  {"command": "r_cleardecals",      "default": "",    "range": "command",  "description": "Clear bullet/blood decals (use in binds)"},
-  {"command": "sv_grenade_trajectory", "default": "0","range": "0-1",     "description": "Show grenade paths (practice mode)"},
-  {"command": "sv_showimpacts",     "default": "0",   "range": "0-1",     "description": "Bullet impact boxes (red/blue)"},
-  {"command": "r_show_build_info",  "default": "1",   "range": "0-1",     "description": "Disable build date text in corner; 0 = hide"}
+  {
+    "command": "viewmodel_fov",
+    "default": "68",
+    "range": "54-68",
+    "description": "Weapon Field Of View (max 68)"
+  },
+  {
+    "command": "viewmodel_offset_x",
+    "default": "0",
+    "range": "float",
+    "description": "Weapon left/right position"
+  },
+  {
+    "command": "viewmodel_offset_y",
+    "default": "0",
+    "range": "float",
+    "description": "Weapon forward/back position"
+  },
+  {
+    "command": "viewmodel_offset_z",
+    "default": "0",
+    "range": "float",
+    "description": "Weapon up/down position"
+  },
+  {
+    "command": "r_cleardecals",
+    "default": "",
+    "range": "command",
+    "description": "Clear bullet/blood decals (use in binds)"
+  },
+  {
+    "command": "sv_grenade_trajectory",
+    "default": "0",
+    "range": "0-1",
+    "description": "Show grenade paths (practice mode)"
+  },
+  {
+    "command": "sv_showimpacts",
+    "default": "0",
+    "range": "0-1",
+    "description": "Bullet impact boxes (red/blue)"
+  },
+  {
+    "command": "r_show_build_info",
+    "default": "1",
+    "range": "0-1",
+    "description": "Disable build date text in corner; 0 = hide"
+  }
 ]
