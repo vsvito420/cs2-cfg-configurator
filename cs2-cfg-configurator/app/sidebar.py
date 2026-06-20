@@ -1,6 +1,6 @@
 # sidebar.py
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QSizePolicy
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 
 
 class SidebarItem:
@@ -18,10 +18,11 @@ class SidebarCategory:
 
 
 NAV = [
-    SidebarItem("🏠  Dashboard",       "dashboard"),
-    SidebarItem("⚙️  CFG Editor",      "cfg_editor"),
-    SidebarItem("🔍  Commands",        "command_viewer"),
-    SidebarItem("🔗  Bind Manager",    "bind_switcher"),
+    SidebarItem("🏠  Dashboard",         "dashboard"),
+    SidebarItem("⚙️  CFG Editor",        "cfg_editor"),
+    SidebarItem("🔍  Commands",          "command_viewer"),
+    SidebarItem("🔗  Bind Manager",      "bind_switcher"),
+    SidebarItem("📶  Aktive Settings",   "settings_reader"),
     SidebarCategory(
         "🛒  Buy Binds", "buy_binds_header",
         children=[
@@ -29,7 +30,7 @@ NAV = [
             SidebarItem("✏️   Edit Binds", "buy_binds_editor", indent=True),
         ]
     ),
-    SidebarItem("🎮  Settings",        "CFG_MAN_settings"),
+    SidebarItem("🎮  Settings",          "CFG_MAN_settings"),
 ]
 
 
@@ -66,22 +67,16 @@ class SidebarButton(QPushButton):
         self._apply_style(active)
 
 
-class SidebarCategoryLabel(QLabel):
-    def __init__(self, text: str, parent=None):
-        super().__init__(text, parent)
-        self.setFixedHeight(36)
-        self.setStyleSheet("QLabel{font-size:13px;color:#cdd6f4;font-weight:bold;padding-left:14px;}")
-
-
 class Sidebar(QWidget):
     MODULES = [
-        ("🏠  Dashboard",     "dashboard"),
-        ("⚙️  CFG Editor",    "cfg_editor"),
-        ("🔍  Commands",      "command_viewer"),
-        ("🔗  Bind Manager",  "bind_switcher"),
-        ("📋  View Binds",    "buy_binds_viewer"),
-        ("✏️   Edit Binds",    "buy_binds_editor"),
-        ("🎮  Settings",      "CFG_MAN_settings"),
+        ("🏠  Dashboard",       "dashboard"),
+        ("⚙️  CFG Editor",      "cfg_editor"),
+        ("🔍  Commands",        "command_viewer"),
+        ("🔗  Bind Manager",    "bind_switcher"),
+        ("📶  Aktive Settings", "settings_reader"),
+        ("📋  View Binds",      "buy_binds_viewer"),
+        ("✏️   Edit Binds",      "buy_binds_editor"),
+        ("🎮  Settings",        "CFG_MAN_settings"),
     ]
 
     def __init__(self, main_window, parent=None):
