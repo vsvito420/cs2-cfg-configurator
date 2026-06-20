@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from sidebar import Sidebar
+from app.sidebar import Sidebar
 
 
 class ModulePage(QWidget):
