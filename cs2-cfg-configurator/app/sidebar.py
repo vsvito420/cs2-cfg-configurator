@@ -10,7 +10,7 @@ class SidebarItem:
     def __init__(self, label: str, key: str, indent: bool = False):
         self.label = label
         self.key = key
-        self.indent = indent  # True = Sub-Eintrag
+        self.indent = indent
 
 
 class SidebarCategory:
@@ -23,8 +23,9 @@ class SidebarCategory:
 
 # --- Navigationsdefinition ---
 NAV: list[SidebarCategory | SidebarItem] = [
+    SidebarItem("\U0001f3e0  Dashboard",        "dashboard"),         # <-- ganz oben
     SidebarItem("\u2699\ufe0f  CFG Editor",        "cfg_editor"),
-    SidebarItem("\U0001f500  Bind Switcher",    "bind_switcher"),
+    SidebarItem("\U0001f517  Bind Manager",      "bind_switcher"),
     SidebarCategory(
         "\U0001f6d2  Buy Binds", "buy_binds_header",
         children=[
@@ -75,26 +76,23 @@ class SidebarButton(QPushButton):
 
 
 class SidebarCategoryLabel(QLabel):
-    """Nicht-klickbarer Kategorie-Header (falls keine eigene Seite)."""
     def __init__(self, text: str, parent=None):
         super().__init__(text, parent)
         self.setFixedHeight(36)
         self.setContentsMargins(14, 0, 0, 0)
         self.setStyleSheet("""
             QLabel {
-                font-size: 13px;
-                color: #cdd6f4;
-                font-weight: bold;
-                padding-left: 14px;
+                font-size: 13px; color: #cdd6f4;
+                font-weight: bold; padding-left: 14px;
             }
         """)
 
 
 class Sidebar(QWidget):
-    # Kompatibilitaet mit main_window: MODULES fuer Iteration
     MODULES = [
+        ("\U0001f3e0  Dashboard",      "dashboard"),
         ("\u2699\ufe0f  CFG Editor",     "cfg_editor"),
-        ("\U0001f500  Bind Switcher", "bind_switcher"),
+        ("\U0001f517  Bind Manager",  "bind_switcher"),
         ("\U0001f4cb  View Binds",    "buy_binds_viewer"),
         ("\u270f\ufe0f   Edit Binds",    "buy_binds_editor"),
         ("\U0001f3ae  Settings",      "CFG_MAN_settings"),
@@ -115,7 +113,6 @@ class Sidebar(QWidget):
 
         for entry in NAV:
             if isinstance(entry, SidebarCategory):
-                # Kategorie-Header als klickbarer Button (oder Label wenn kein key)
                 header_item = SidebarItem(entry.label, entry.key, indent=False)
                 header_btn = SidebarButton(header_item)
                 header_btn.clicked_key.connect(self._on_click)
@@ -144,11 +141,9 @@ class Sidebar(QWidget):
         self._on_click(key)
 
     def apply_style(self, settings: dict):
-        """Wird von main_window nach Settings-Aenderung aufgerufen."""
         width = settings.get("sidebar_width", 210)
         self.setFixedWidth(width)
         bg = settings.get("sidebar_bg", "#1e1e2e")
         self.setStyleSheet(f"QWidget {{ background-color: {bg}; }}")
-        # Buttons neu stylen (aktiven Status beibehalten)
         for btn in self._buttons:
             btn._apply_style(btn.key == self._active_key)

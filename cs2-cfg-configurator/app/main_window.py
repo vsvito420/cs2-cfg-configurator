@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from app.sidebar import Sidebar
+from app.modules.dashboard.view import DashboardPage
 from app.modules.settings_page.view import SettingsPage
 from app.modules.buy_binds.view import BuyBindsPage
 from app.modules.buy_binds.viewer import BuyBindsViewer
@@ -41,6 +42,7 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget(self)
 
         self._pages = {
+            "dashboard":         DashboardPage(),          # Startseite
             "cfg_editor":        CfgEditorPage(),
             "bind_switcher":     BindManagerPage(),
             "buy_binds_viewer":  BuyBindsViewer(),
@@ -53,7 +55,7 @@ class MainWindow(QMainWindow):
 
         self.sidebar = Sidebar(self)
         self._apply_settings_to_ui()
-        self.sidebar.set_active_key("buy_binds_viewer")
+        self.sidebar.set_active_key("dashboard")   # Dashboard beim Start
 
         self._root_layout.addWidget(self.sidebar)
         self._root_layout.addWidget(self.stack, 1)
