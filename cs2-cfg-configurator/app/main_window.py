@@ -9,6 +9,7 @@ from app.modules.settings_page.view import SettingsPage
 from app.modules.buy_binds.view import BuyBindsPage
 from app.modules.buy_binds.viewer import BuyBindsViewer
 from app.modules.cfg_editor.view import CfgEditorPage
+from app.modules.bind_switcher.view import BindManagerPage
 from app import settings_manager
 
 
@@ -41,7 +42,7 @@ class MainWindow(QMainWindow):
 
         self._pages = {
             "cfg_editor":        CfgEditorPage(),
-            "bind_switcher":     ModulePage("\U0001f500  Bind Switcher \u2013 kommt bald"),
+            "bind_switcher":     BindManagerPage(),
             "buy_binds_viewer":  BuyBindsViewer(),
             "buy_binds_editor":  BuyBindsPage(),
             "buy_binds_header":  ModulePage("\U0001f6d2  Buy Binds"),
