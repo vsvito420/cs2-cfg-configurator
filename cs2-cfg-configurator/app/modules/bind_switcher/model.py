@@ -1,13 +1,5 @@
 # model.py – Datenmodelle fuer alle Bind-Typen
 from dataclasses import dataclass, field
-from enum import Enum
-
-
-class BindType(str, Enum):
-    SIMPLE = "simple"       # bind "key" "command"
-    TOGGLE = "toggle"       # alias toggle zwischen 2 States
-    HOLD   = "hold"         # +alias / -alias
-    CFG    = "cfg"          # exec <cfg-datei>
 
 
 @dataclass
@@ -20,25 +12,31 @@ class SimpleBind:
 @dataclass
 class ToggleBind:
     key: str = ""
-    alias_name: str = ""        # z.B. "toggle_crosshair"
-    state_a_cmds: str = ""      # Befehle fuer State A
-    state_b_cmds: str = ""      # Befehle fuer State B
+    alias_name: str = ""
+    state_a_cmds: str = ""
+    state_b_cmds: str = ""
     description: str = ""
 
 
 @dataclass
 class HoldBind:
     key: str = ""
-    alias_name: str = ""        # z.B. "radar_zoom"
-    press_cmds: str = ""        # Befehle beim Druecken (+)
-    release_cmds: str = ""      # Befehle beim Loslassen (-)
+    alias_name: str = ""
+    before_cmds: str = ""   # Default-State (wird beim Start gesetzt)
+    press_cmds: str = ""    # +alias (while pressing)
+    release_cmds: str = ""  # -alias (after released)
     description: str = ""
 
 
 @dataclass
 class CfgBind:
     key: str = ""
-    cfg_file: str = ""          # z.B. "crosshairA.cfg"
+    exec_type: str = "simple"   # simple | hold | toggle
+    cfg_file: str = ""          # simple
+    cfg_press: str = ""         # hold: beim Druecken
+    cfg_release: str = ""       # hold: beim Loslassen
+    cfg_file_a: str = ""        # toggle: State A
+    cfg_file_b: str = ""        # toggle: State B
     description: str = ""
 
 
