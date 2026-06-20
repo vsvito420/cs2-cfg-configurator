@@ -1,11 +1,11 @@
 # settings_manager.py
-# Verwaltet App-Einstellungen (Farben, Sidebar-Breite etc.) via JSON
 import json
 from pathlib import Path
 
 SETTINGS_FILE = Path(__file__).parent.parent / "configs" / "app_settings.json"
 
 DEFAULTS = {
+    "app_bg": "#181825",
     "sidebar_bg": "#1e1e2e",
     "sidebar_text": "#cdd6f4",
     "sidebar_selected_bg": "#313244",
