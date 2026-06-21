@@ -12,12 +12,12 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QDesktopServices, QColor, QPen
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-DATA_ROOT    = PROJECT_ROOT / "data"
-CONFIGS_DIR  = PROJECT_ROOT / "configs"
+PROJECT_ROOT  = Path(__file__).parent.parent.parent.parent
+DATA_ROOT     = PROJECT_ROOT / "data"
+CONFIGS_DIR   = PROJECT_ROOT / "configs"
 SETTINGS_FILE = PROJECT_ROOT / "configs" / "app_settings.json"
+ICON_PATH     = PROJECT_ROOT / "app" / "assets" / "icon.png"
 
 CATEGORY_META = {
     "crosshair":   {"label": "Crosshair",    "icon": "🎯", "folder": "crosshair"},
@@ -29,34 +29,24 @@ CATEGORY_META = {
     "buy-binds":   {"label": "Buy Binds",    "icon": "🛒", "folder": "buy-binds"},
 }
 
-GITHUB_AVATAR_URL = "https://github.com/vsvito420.png?size=100"
-
 COLORS = ["#89b4fa","#a6e3a1","#fab387","#f38ba8","#cba6f7","#94e2d5","#f9e2af"]
 
-# Bekannte Steam-Library-Orte auf Windows durchsuchen
-def _find_cs2_path() -> tuple[str, bool]:
-    """Gibt (pfad, gefunden) zurueck. Durchsucht alle gaengigen Steam-Locations."""
-    cs2_sub = Path("steamapps") / "common" / "Counter-Strike Global Offensive"
 
+def _find_cs2_path() -> tuple[str, bool]:
+    cs2_sub = Path("steamapps") / "common" / "Counter-Strike Global Offensive"
     if sys.platform == "win32":
-        candidates = []
-        # Standard Steam
-        candidates.append(Path(r"C:\Program Files (x86)\Steam") / cs2_sub)
-        candidates.append(Path(r"C:\Program Files\Steam") / cs2_sub)
-        # Alle Laufwerke A-Z durchsuchen
+        candidates = [
+            Path(r"C:\Program Files (x86)\Steam") / cs2_sub,
+            Path(r"C:\Program Files\Steam") / cs2_sub,
+        ]
         import string
         for drive in string.ascii_uppercase:
-            p = Path(f"{drive}:\\") / "SteamLibrary" / cs2_sub
-            candidates.append(p)
-            p2 = Path(f"{drive}:\\") / "Steam" / cs2_sub
-            candidates.append(p2)
-            p3 = Path(f"{drive}:\\") / "Games" / "Steam" / cs2_sub
-            candidates.append(p3)
+            for sub in ("SteamLibrary", "Steam", "Games\\Steam"):
+                candidates.append(Path(f"{drive}:\\") / sub / cs2_sub)
         for c in candidates:
             if c.exists():
                 return str(c), True
         return str(Path(r"C:\Program Files (x86)\Steam") / cs2_sub), False
-
     elif sys.platform == "darwin":
         p = Path("~/Library/Application Support/Steam").expanduser() / cs2_sub
         return str(p), p.exists()
@@ -113,13 +103,6 @@ STYLE_DEPLOY = """
     }
     QPushButton:hover { background:#c0f0bb; }
 """
-STYLE_WARN = """
-    QPushButton {
-        background:#fab387; color:#1e1e2e; border:none;
-        border-radius:6px; padding:7px 14px; font-size:12px;
-    }
-    QPushButton:hover { background:#ffd0a8; }
-"""
 INPUT_STYLE = """
     QLineEdit {
         background:#1e1e2e; color:#cdd6f4;
@@ -131,26 +114,18 @@ INPUT_STYLE = """
 """
 
 
-class RoundAvatar(QLabel):
+class AppIconLabel(QLabel):
+    """Zeigt das Programm-Icon rund zugeschnitten — kein Netzwerkzugriff."""
     def __init__(self, size=72, parent=None):
         super().__init__(parent)
         self._size = size
         self.setFixedSize(size, size)
         self._pixmap = None
-        self._mgr = QNetworkAccessManager(self)
-        req = QNetworkRequest(QUrl(GITHUB_AVATAR_URL))
-        reply = self._mgr.get(req)
-        reply.finished.connect(lambda: self._on_loaded(reply))
-
-    def _on_loaded(self, reply: QNetworkReply):
-        if reply.error() == QNetworkReply.NoError:
-            px = QPixmap()
-            px.loadFromData(reply.readAll())
-            if not px.isNull():
-                self._pixmap = px.scaled(self._size, self._size,
-                    Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-                self.update()
-        reply.deleteLater()
+        if ICON_PATH.exists():
+            px = QPixmap(str(ICON_PATH)).scaled(
+                size, size, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation
+            )
+            self._pixmap = px
 
     def paintEvent(self, event):
         if not self._pixmap:
@@ -202,8 +177,6 @@ class DashboardPage(QWidget):
         self._build()
         self._init_cs2_path()
 
-    # ── Build ─────────────────────────────────────────────────────────────
-
     def _build(self):
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -223,7 +196,7 @@ class DashboardPage(QWidget):
         root.setContentsMargins(32, 28, 32, 32)
         root.setSpacing(22)
 
-        # ── Hero ──
+        # Hero
         hero = QFrame()
         hero.setStyleSheet("""
             QFrame { background:qlineargradient(x1:0,y1:0,x2:1,y2:1,
@@ -233,7 +206,7 @@ class DashboardPage(QWidget):
         hl = QHBoxLayout(hero)
         hl.setContentsMargins(28, 22, 28, 22)
         hl.setSpacing(18)
-        hl.addWidget(RoundAvatar(76))
+        hl.addWidget(AppIconLabel(76))  # <-- Programm-Icon statt GitHub Avatar
         tc = QVBoxLayout()
         tc.setSpacing(4)
         g = QLabel("🎮  CS2 CFG Configurator")
@@ -250,7 +223,7 @@ class DashboardPage(QWidget):
         hl.addWidget(btn_launch)
         root.addWidget(hero)
 
-        # ── Stats: Commands ──
+        # Stats
         lbl1 = QLabel("📊  Verfügbare Commands pro Kategorie")
         lbl1.setStyleSheet("color:#a6adc8;font-size:12px;font-weight:bold;")
         root.addWidget(lbl1)
@@ -272,7 +245,6 @@ class DashboardPage(QWidget):
             if col >= 4:
                 col = 0
                 row += 1
-        # CFG-Dateien Stats
         total_cfgs = sum(1 for _ in CONFIGS_DIR.rglob("*.cfg")) if CONFIGS_DIR.exists() else 0
         bind_cfgs  = sum(1 for _ in (CONFIGS_DIR/"bind-manager").rglob("*.cfg")) if (CONFIGS_DIR/"bind-manager").exists() else 0
         grid.addWidget(StatCard("📁", total_cfgs, "Gespeicherte CFGs", "Alle .cfg im configs/ Ordner", "#cba6f7"), row, col)
@@ -281,7 +253,7 @@ class DashboardPage(QWidget):
         grid.addWidget(StatCard("🔗", bind_cfgs, "Bind Manager CFGs", "In configs/bind-manager/", "#f5c2e7"), row, col)
         root.addLayout(grid)
 
-        # ── CS2 Pfad + Deploy ──
+        # CS2 Pfad + Deploy
         path_card = QFrame()
         path_card.setStyleSheet(CARD_STYLE)
         pv = QVBoxLayout(path_card)
@@ -322,7 +294,6 @@ class DashboardPage(QWidget):
         prow.addWidget(btn_open_cfg)
         pv.addLayout(prow)
 
-        # Deploy-Bereich
         deploy_frame = QFrame()
         deploy_frame.setStyleSheet("QFrame{background:#1e1e2e;border:1px dashed #45475a;border-radius:8px;}")
         dv = QHBoxLayout(deploy_frame)
@@ -337,7 +308,6 @@ class DashboardPage(QWidget):
         text_col2.addWidget(deploy_lbl)
         text_col2.addWidget(deploy_sub)
         dv.addLayout(text_col2, 1)
-
         self._btn_deploy = QPushButton("🚀  Deploy CFGs")
         self._btn_deploy.setStyleSheet(STYLE_DEPLOY)
         self._btn_deploy.setFixedHeight(36)
@@ -348,43 +318,35 @@ class DashboardPage(QWidget):
         hint = QLabel("💡 CFG-Zielpfad: <CS2-Pfad>/game/csgo/cfg/")
         hint.setStyleSheet("color:#585b70;font-size:10px;font-style:italic;background:transparent;border:none;")
         pv.addWidget(hint)
-
         root.addWidget(path_card)
         root.addStretch()
 
-    # ── CS2-Pfad Logik ────────────────────────────────────────────────────────────
-
     def _init_cs2_path(self):
-        # 1. gespeicherten Pfad laden
         saved = _load_saved_cs2_path()
         if saved and Path(saved).exists():
             self._set_path(saved, found=True)
             return
-        # 2. automatisch suchen
         found_path, found = _find_cs2_path()
         if found:
             self._set_path(found_path, found=True)
             _save_cs2_path(found_path)
         else:
-            # 3. nicht gefunden -> Dialog
             self._set_path(found_path, found=False)
             self._ask_for_path()
 
     def _ask_for_path(self):
         QMessageBox.information(
-            self,
-            "CS2-Pfad nicht gefunden",
+            self, "CS2-Pfad nicht gefunden",
             "CS2 konnte nicht automatisch gefunden werden.\n"
-            "Bitte w\u00e4hle den Installationsordner manuell.\n\n"
+            "Bitte wähle den Installationsordner manuell.\n\n"
             "Beispiel: G:\\SteamLibrary\\steamapps\\common\\Counter-Strike Global Offensive"
         )
         self._browse_cs2()
 
     def _browse_cs2(self):
         path = QFileDialog.getExistingDirectory(
-            self,
-            "CS2 Installationsordner ausw\u00e4hlen",
-            self._path_edit.text() or "C:\\",
+            self, "CS2 Installationsordner auswählen",
+            self._path_edit.text() or "C:\\"
         )
         if path:
             self._set_path(path, found=True)
@@ -412,25 +374,22 @@ class DashboardPage(QWidget):
             self._status_lbl.setText("⚠️  Nicht gefunden")
             self._status_lbl.setStyleSheet("color:#fab387;font-size:11px;background:transparent;border:none;")
 
-    # ── Deploy ───────────────────────────────────────────────────────────────────
-
     def _deploy_cfgs(self):
         cs2 = Path(self._path_edit.text())
         target = cs2 / "game" / "csgo" / "cfg"
         if not cs2.exists():
-            QMessageBox.warning(self, "Pfad fehlt", "CS2-Pfad ist nicht gesetzt oder existiert nicht.\nBitte zuerst den Pfad setzen.")
+            QMessageBox.warning(self, "Pfad fehlt", "CS2-Pfad ist nicht gesetzt oder existiert nicht.")
             return
         target.mkdir(parents=True, exist_ok=True)
         cfg_files = list(CONFIGS_DIR.rglob("*.cfg"))
         if not cfg_files:
-            QMessageBox.information(self, "Keine CFGs", "Keine .cfg-Dateien in configs/ gefunden.\nErstelle zuerst CFGs mit dem CFG Editor oder Bind Manager.")
+            QMessageBox.information(self, "Keine CFGs", "Keine .cfg-Dateien in configs/ gefunden.")
             return
         copied = []
         for src in cfg_files:
             if src.name == ".gitkeep":
                 continue
-            dst = target / src.name
-            shutil.copy2(src, dst)
+            shutil.copy2(src, target / src.name)
             copied.append(src.name)
         QMessageBox.information(
             self, "✅  Deploy erfolgreich",

@@ -1,6 +1,8 @@
 # settings_reader/view.py
 from pathlib import Path
 import copy
+import subprocess
+import sys
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
@@ -78,6 +80,13 @@ STYLE_BACKUP = """
     }
     QPushButton:hover { background:#c0f0bb; }
 """
+STYLE_FOLDER = """
+    QPushButton {
+        background:#313244; color:#cdd6f4; border:none;
+        border-radius:6px; padding:7px 14px; font-size:12px;
+    }
+    QPushButton:hover { background:#45475a; }
+"""
 
 SECTION_COLORS = {"convars": "#89b4fa", "keys": "#a6e3a1", "video": "#fab387"}
 SECTION_LABELS = {
@@ -93,8 +102,8 @@ class SettingsReaderPage(QWidget):
         super().__init__(parent)
         self._userdata: Path | None = None
         self._steam_ids: list[str] = []
-        self._data: dict = {}        # {steam_id: {convars, keys, video, ...}}
-        self._pending: dict = {}     # {steam_id: {"convars": {key: new_val}, "keys": ..., "video": ...}}
+        self._data: dict = {}
+        self._pending: dict = {}
         self._search_timer = QTimer(self)
         self._search_timer.setSingleShot(True)
         self._search_timer.timeout.connect(self._apply_filter)
@@ -190,7 +199,7 @@ class SettingsReaderPage(QWidget):
         bb = QHBoxLayout(backup_bar)
         bb.setContentsMargins(16, 5, 16, 5)
         bb.setSpacing(8)
-        backup_lbl = QLabel("📂  Backup erstellen:")
+        backup_lbl = QLabel("🗂️  Backup:")
         backup_lbl.setStyleSheet("color:#6c7086; font-size:11px;")
         bb.addWidget(backup_lbl)
         for label, section in [("⚙️ Convars", "convars"), ("⌨️ Keys", "keys"), ("🖥️ Video", "video")]:
@@ -199,13 +208,21 @@ class SettingsReaderPage(QWidget):
             b.setFixedHeight(28)
             b.clicked.connect(lambda _=False, s=section: self._backup(s))
             bb.addWidget(b)
+
+        # ── NEU: Backup-Ordner öffnen ──
+        btn_open_backup = QPushButton("📂  Backup-Ordner")
+        btn_open_backup.setStyleSheet(STYLE_FOLDER)
+        btn_open_backup.setFixedHeight(28)
+        btn_open_backup.clicked.connect(self._open_backup_dir)
+        bb.addWidget(btn_open_backup)
+
         bb.addStretch()
         hint = QLabel("⚠️ Doppelklick = Wert bearbeiten  |  Rechtsklick = Kontextmenü")
         hint.setStyleSheet("color:#585b70; font-size:10px; font-style:italic;")
         bb.addWidget(hint)
         root.addWidget(backup_bar)
 
-        # Tree mit 4 Spalten: Setting | Original | Änderung | Revert
+        # Tree: Setting | Aktueller Wert | Änderung | Revert
         self._tree = QTreeWidget()
         self._tree.setStyleSheet(STYLE_TREE)
         self._tree.setHeaderLabels(["Setting", "Aktueller Wert", "➤ Neue Änderung", ""])
@@ -220,6 +237,17 @@ class SettingsReaderPage(QWidget):
         self._tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self._tree.customContextMenuRequested.connect(self._on_context_menu)
         root.addWidget(self._tree, 1)
+
+    # ── Backup-Ordner öffnen ──────────────────────────────────────────────
+
+    def _open_backup_dir(self):
+        BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        if sys.platform == "win32":
+            subprocess.Popen(["explorer", str(BACKUP_DIR)])
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", str(BACKUP_DIR)])
+        else:
+            subprocess.Popen(["xdg-open", str(BACKUP_DIR)])
 
     # ── Scan & Load ────────────────────────────────────────────────────────────
 
@@ -304,14 +332,11 @@ class SettingsReaderPage(QWidget):
                 pending_val = pend.get(key, "")
                 item.setText(2, pending_val)
                 item.setData(0, Qt.UserRole, {"section": section_key, "key": key, "orig": orig_val})
-
                 item.setForeground(0, QColor("#cdd6f4"))
                 item.setForeground(1, QColor(color))
-
                 if pending_val:
                     item.setForeground(2, QColor("#f9e2af"))
                     item.setBackground(0, QColor("#2a2a1a"))
-                    # Revert-Button-Spalte als Text
                     item.setText(3, "↺")
                     item.setForeground(3, QColor("#f38ba8"))
                 else:
@@ -328,13 +353,12 @@ class SettingsReaderPage(QWidget):
             self._pending_lbl.setText("")
             self._btn_save.setVisible(False)
 
-    # ── Edit (Doppelklick / Kontextmenü) ────────────────────────────────────
+    # ── Edit ───────────────────────────────────────────────────────────────────
 
     def _on_double_click(self, item: QTreeWidgetItem, col: int):
         meta = item.data(0, Qt.UserRole)
         if not meta or meta.get("is_group"):
             return
-        # Spalte 3 = Revert
         if col == 3:
             self._revert_item(item)
             return
@@ -357,7 +381,6 @@ class SettingsReaderPage(QWidget):
         act_revert.setEnabled(bool(item.text(2)))
         menu.addSeparator()
         act_copy   = menu.addAction("📋  Command kopieren")
-
         action = menu.exec(self._tree.viewport().mapToGlobal(pos))
         if action == act_edit:
             self._edit_item(item)
@@ -374,7 +397,6 @@ class SettingsReaderPage(QWidget):
         sid  = self._id_combo.currentData()
         section = meta["section"]
         current_pending = self._pending[sid][section].get(key, meta["orig"])
-
         new_val, ok = QInputDialog.getText(
             self, f"Wert ändern: {key}",
             f"Neuer Wert für  {key}\n(Original: {meta['orig']})",
@@ -393,50 +415,38 @@ class SettingsReaderPage(QWidget):
         self._pending[sid][meta["section"]].pop(meta["key"], None)
         self._apply_filter()
 
-    # ── In Datei schreiben ───────────────────────────────────────────────────
+    # ── In Datei schreiben ──────────────────────────────────────────────────
 
     def _write_changes(self):
         sid = self._id_combo.currentData()
         d   = self._data[sid]
         pending = self._pending[sid]
-
         confirm = QMessageBox.warning(
             self, "⚠️  Direkt in Datei schreiben?",
             "Diese Änderungen werden direkt in die Steam-Konfigurationsdateien geschrieben.\n"
-            "CS2 liest diese nur beim Start — also CS2 neu starten damit sie aktiv werden.\n\n"
-            "Fortfahren?",
+            "CS2 liest diese nur beim Start — also CS2 neu starten damit sie aktiv werden.\n\nFortfahren?",
             QMessageBox.Yes | QMessageBox.Cancel
         )
         if confirm != QMessageBox.Yes:
             return
-
-        section_files = {
-            "convars": d["convars_file"],
-            "keys":    d["keys_file"],
-            "video":   d["video_file"],
-        }
+        section_files = {"convars": d["convars_file"], "keys": d["keys_file"], "video": d["video_file"]}
         for section_key, changes in pending.items():
             if not changes:
                 continue
             filepath = Path(section_files[section_key])
             if not filepath.exists():
                 continue
+            import re
             content = filepath.read_text(encoding="utf-8", errors="ignore")
             for key, new_val in changes.items():
-                # Ersetze den Wert in der Datei
-                import re
-                # Format: "key"	"oldval"
                 pattern = rf'("{re.escape(key)}"\s*)"[^"]*"'
                 replacement = rf'\1"{new_val}"'
                 new_content = re.sub(pattern, replacement, content)
                 if new_content == content:
-                    # Fallback: setcommand "key" "oldval"
                     pattern2 = rf'(setcommand\s+"{re.escape(key)}"\s*)"[^"]*"'
                     new_content = re.sub(pattern2, replacement, content)
                 content = new_content
             filepath.write_text(content, encoding="utf-8")
-
-        # Pending leeren und neu laden
         self._pending[sid] = {"convars": {}, "keys": {}, "video": {}}
         self._scan()
         QMessageBox.information(self, "✅  Gespeichert", "Dateien wurden aktualisiert.\nCS2 neu starten um die Änderungen zu übernehmen.")
@@ -449,7 +459,6 @@ class SettingsReaderPage(QWidget):
             return
         d = self._data[sid]
         name = d.get("name", sid)
-
         preset_name, ok = QInputDialog.getText(
             self, f"Backup: {section}",
             f"Name für das Backup (z.B. crosshairA, pistol_keys):",
@@ -457,26 +466,20 @@ class SettingsReaderPage(QWidget):
         )
         if not ok or not preset_name.strip():
             return
-
         items = d[section]
         BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         safe = "".join(c for c in preset_name if c.isalnum() or c in " _-").strip().replace(" ", "_")
         out = BACKUP_DIR / f"{safe}.cfg"
-
         if section == "convars":
             lines = [f'setcommand "{k}" "{v}"' for k, v in sorted(items.items())]
         elif section == "keys":
             lines = [f'bind "{k}" "{v}"' for k, v in sorted(items.items())]
-        elif section == "video":
-            lines = [f'"{k}"\t"{v}"' for k, v in sorted(items.items())]
         else:
-            lines = []
-
+            lines = [f'"{k}"\t"{v}"' for k, v in sorted(items.items())]
         header = [
-            f"// CS2 CFG Configurator – Backup",
+            "// CS2 CFG Configurator – Backup",
             f"// Section: {section}  |  Account: {name}  (ID: {sid})",
-            f"// Erstellt mit CS2 CFG Configurator",
-            "",
+            "// Erstellt mit CS2 CFG Configurator", "",
         ]
         out.write_text("\n".join(header + lines), encoding="utf-8")
         QMessageBox.information(self, "✅  Backup erstellt", f"Gespeichert nach:\n{out}")
