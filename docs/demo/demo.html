@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS2 CFG Configurator – Web Edition</title>
+  <link rel="stylesheet" href="demo.css" />
+</head>
+
+<body>
+
+  <nav>
+    <div class="nav-logo">CS2 <span>CFG Configurator</span></div>
+    <ul>
+      <li><a href="index.html">← Back</a></li>
+      <li><span class="badge">Open Source</span></li>
+      <li><span class="badge badge-web">Web Edition</span></li>
+      <li><a href="https://github.com/vsvito420/cs2-cfg-configurator">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="folder-bar">
+        <small>CS2 cfg Folder</small>
+        <button class="btn-folder" onclick="pickFolder()">📁 Select Folder…</button>
+        <div id="folder-name">No folder selected</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Modules</div>
+        <div class="sb-item active" onclick="sw('dashboard',this)"><span class="sb-icon">📊</span> Dashboard</div>
+        <div class="sb-item" onclick="sw('buybinds',this)"><span class="sb-icon">🛡️</span> Buy Binds</div>
+        <div class="sb-item" onclick="sw('bindswitcher',this)"><span class="sb-icon">⌨️</span> Bind Switcher</div>
+        <div class="sb-item" onclick="sw('settings',this)"><span class="sb-icon">🔧</span> Settings Editor</div>
+        <div class="sb-item" onclick="sw('cfgeditor',this)"><span class="sb-icon">📝</span> CFG Editor</div>
+        <div class="sb-item" onclick="sw('cmdviewer',this)"><span class="sb-icon">🔍</span> Command Viewer</div>
+        <div class="sb-item" onclick="sw('export',this)"><span class="sb-icon">💾</span> Export</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Info</div>
+        <div class="sb-item" onclick="sw('about',this)"><span class="sb-icon">ℹ️</span> About</div>
+      </div>
+      <div class="sb-disclaimer">
+        <div class="sb-disc-title">⚠️ Achtung</div>
+        <p>Diese <strong>Web Edition</strong> ist ein <strong>Quick-Port</strong> vom Windows-Python-Tool und <strong>funktioniert nur eingeschränkt</strong>.</p>
+        <p style="margin-top:.4rem">✅ Nur CS2-Daten aus dem <code>csgo/cfg</code>-Ordner können gelesen/geschrieben werden.</p>
+        <p style="margin-top:.4rem">❌ <strong>Userdata</strong>-Inhalte (Demos, Replays, GPU-Config, Saved-ConVars, Autoexec-Backups aus dem Steam-Userdata-Ordner) können <strong>nicht geladen</strong> werden — der Browser hat keinen Zugriff darauf.</p>
+        <p style="margin-top:.4rem">Für den vollen Funktionsumfang nutze die <strong>EXE</strong> aus den Releases.</p>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="p-title">📊 Dashboard</div>
+        <div class="p-sub">Overview of your current configuration session.</div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-num" id="d-buybinds">0</div>
+            <div class="dash-lbl">Buy Binds</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-num" id="d-switchbinds">0</div>
+            <div class="dash-lbl">Switch Binds</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-num" id="d-settings">0</div>
+            <div class="dash-lbl">Settings changed</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-num" id="d-cfglines">0</div>
+            <div class="dash-lbl">CFG Editor lines</div>
+          </div>
+        </div>
+        <div class="dash-notice">
+          <strong>🌐 Web Edition</strong> — Originally this was a <strong>Windows-only Python app</strong>. I rewrote it
+          as a web version with AI so anyone can use it directly in the browser without installing anything.<br><br>
+          The web version covers all interactive features. Only auto-detection of your Steam path requires the desktop
+          app. Select your CS2 <code>cfg</code> folder in the sidebar to enable direct file saving via the <strong>File
+            System Access API</strong> (Chrome/Edge 86+).<br><br>
+          <strong>Launch option tip:</strong> Add <code>+exec autoexec</code> to CS2 launch options in Steam so your
+          config loads on startup.
+        </div>
+        <hr class="divider">
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="sw('buybinds',getSbItem(1))">Start: Buy Binds →</button>
+          <button class="btn btn-ghost" onclick="sw('bindswitcher',getSbItem(2))">Bind Switcher →</button>
+          <button class="btn btn-ghost" onclick="sw('export',getSbItem(6))">Export CFG →</button>
+        </div>
+      </div>
+
+      <!-- BUY BINDS -->
+      <div class="panel" id="panel-buybinds">
+        <div class="p-title">🛡️ Buy Bind Builder</div>
+        <div class="p-sub">Select weapons/gear, assign a key, generate the buy bind command.</div>
+
+        <div class="card">
+          <div class="row" style="margin-bottom:.7rem">
+            <div class="col" style="max-width:140px">
+              <label>Key</label>
+              <input type="text" id="bb-key" placeholder="F1, KP_1, MOUSE4…" maxlength="20" />
+            </div>
+            <div style="align-self:end">
+              <button class="btn btn-primary" onclick="addBuyBind()">＋ Add Buy Bind</button>
+            </div>
+            <div style="align-self:end">
+              <button class="btn btn-ghost" onclick="clearBBSelection()">Clear selection</button>
+            </div>
+          </div>
+
+          <div class="weap-section-title">Primary Weapons</div>
+          <div class="weapon-grid" id="wg-primary"></div>
+          <div class="weap-section-title">Secondary / Pistols</div>
+          <div class="weapon-grid" id="wg-secondary"></div>
+          <div class="weap-section-title">Grenades &amp; Gear</div>
+          <div class="weapon-grid" id="wg-grenades"></div>
+          <div class="weap-section-title">Armor &amp; Utility</div>
+          <div class="weapon-grid" id="wg-armor"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+          <span style="font-size:.78rem;color:var(--muted)">Generated command preview</span>
+        </div>
+        <div class="cfg-preview" id="bb-cmd-preview">// Select weapons above and assign a key</div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+          <span style="font-size:.78rem;color:var(--muted)">Buy Binds list</span>
+          <button class="btn btn-ghost" style="font-size:.74rem;padding:.25rem .5rem" onclick="copyBuyBinds()">📋 Copy
+            all</button>
+        </div>
+        <div class="buy-bind-list" id="bb-list">
+          <div style="color:var(--muted);font-style:italic;font-size:.82rem;padding:.5rem">No buy binds yet.</div>
+        </div>
+      </div>
+
+      <!-- BIND SWITCHER -->
+      <div class="panel" id="panel-bindswitcher">
+        <div class="p-title">⌨️ Bind Switcher</div>
+        <div class="p-sub">Create Simple, Toggle, Hold, and CFG-Exec binds — just like the Python app.</div>
+
+        <div class="bs-type-tabs">
+          <button class="bs-tab active" onclick="bsTab('simple',this)">Simple</button>
+          <button class="bs-tab" onclick="bsTab('toggle',this)">Toggle</button>
+          <button class="bs-tab" onclick="bsTab('hold',this)">Hold</button>
+          <button class="bs-tab" onclick="bsTab('cfgexec',this)">CFG Exec</button>
+        </div>
+
+        <!-- Simple -->
+        <div class="bs-form" id="bsf-simple">
+          <div class="row">
+            <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-s-key" placeholder="F1"
+                maxlength="20" /></div>
+            <div class="col"><label>Command</label><input type="text" id="bs-s-cmd" placeholder="noclip" /></div>
+            <div class="col" style="max-width:200px"><label>Description (optional)</label><input type="text"
+                id="bs-s-desc" placeholder="My bind…" /></div>
+          </div>
+          <div style="margin-top:.65rem">
+            <button class="btn btn-primary" onclick="addSimpleBind()">＋ Add Simple Bind</button>
+          </div>
+        </div>
+
+        <!-- Toggle -->
+        <div class="bs-form" id="bsf-toggle" style="display:none">
+          <div class="row">
+            <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-t-key" placeholder="F2"
+                maxlength="20" /></div>
+            <div class="col" style="max-width:200px"><label>Alias name</label><input type="text" id="bs-t-alias"
+                placeholder="my_toggle" /></div>
+            <div class="col"><label>Description (optional)</label><input type="text" id="bs-t-desc" placeholder="…" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:.6rem">
+            <div class="col"><label>State A commands</label><input type="text" id="bs-t-a"
+                placeholder="cl_righthand 1" /></div>
+            <div class="col"><label>State B commands</label><input type="text" id="bs-t-b"
+                placeholder="cl_righthand 0" /></div>
+          </div>
+          <div style="margin-top:.65rem">
+            <button class="btn btn-primary" onclick="addToggleBind()">＋ Add Toggle Bind</button>
+          </div>
+        </div>
+
+        <!-- Hold -->
+        <div class="bs-form" id="bsf-hold" style="display:none">
+          <div class="row">
+            <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-h-key"
+                placeholder="MOUSE4" maxlength="20" /></div>
+            <div class="col" style="max-width:200px"><label>Alias name</label><input type="text" id="bs-h-alias"
+                placeholder="my_hold" /></div>
+            <div class="col"><label>Description (optional)</label><input type="text" id="bs-h-desc" placeholder="…" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:.6rem">
+            <div class="col"><label>On Press commands</label><input type="text" id="bs-h-press" placeholder="+zoom" />
+            </div>
+            <div class="col"><label>On Release commands</label><input type="text" id="bs-h-release"
+                placeholder="-zoom" /></div>
+            <div class="col"><label>Before (default state, optional)</label><input type="text" id="bs-h-before"
+                placeholder="…" /></div>
+          </div>
+          <div style="margin-top:.65rem">
+            <button class="btn btn-primary" onclick="addHoldBind()">＋ Add Hold Bind</button>
+          </div>
+        </div>
+
+        <!-- CFG Exec -->
+        <div class="bs-form" id="bsf-cfgexec" style="display:none">
+          <div class="row">
+            <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-c-key" placeholder="F3"
+                maxlength="20" /></div>
+            <div class="col" style="max-width:140px">
+              <label>Exec type</label>
+              <select id="bs-c-type" onchange="cfgExecTypeChange()">
+                <option value="simple">Simple exec</option>
+                <option value="toggle">Toggle (A/B)</option>
+                <option value="hold">Hold (press/release)</option>
+              </select>
+            </div>
+            <div class="col"><label>Description (optional)</label><input type="text" id="bs-c-desc" placeholder="…" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:.6rem" id="cfg-simple-row">
+            <div class="col"><label>CFG file</label><input type="text" id="bs-c-file" placeholder="practice.cfg" />
+            </div>
+          </div>
+          <div id="cfg-toggle-row" style="display:none">
+            <div class="row" style="margin-top:.6rem">
+              <div class="col"><label>CFG A</label><input type="text" id="bs-c-fa" placeholder="state_a.cfg" /></div>
+              <div class="col"><label>CFG B</label><input type="text" id="bs-c-fb" placeholder="state_b.cfg" /></div>
+            </div>
+          </div>
+          <div id="cfg-hold-row" style="display:none">
+            <div class="row" style="margin-top:.6rem">
+              <div class="col"><label>CFG on Press</label><input type="text" id="bs-c-fp" placeholder="press.cfg" />
+              </div>
+              <div class="col"><label>CFG on Release</label><input type="text" id="bs-c-fr" placeholder="release.cfg" />
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:.65rem">
+            <button class="btn btn-primary" onclick="addCfgBind()">＋ Add CFG Bind</button>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+          <span style="font-size:.78rem;color:var(--muted)">Bind list</span>
+          <button class="btn btn-ghost" style="font-size:.74rem;padding:.25rem .5rem" onclick="copySwitchBinds()">📋
+            Copy CFG</button>
+        </div>
+        <div class="bs-list" id="bs-list">
+          <div style="color:var(--muted);font-style:italic;font-size:.82rem;padding:.5rem">No binds yet.</div>
+        </div>
+        <div class="cfg-preview" id="bs-preview">// No binds yet</div>
+      </div>
+
+      <!-- SETTINGS EDITOR -->
+      <div class="panel" id="panel-settings">
+        <div class="p-title">🔧 Settings Editor</div>
+        <div class="p-sub">Browse CS2 ConVars, set custom values. Changed values are included in Export.</div>
+        <div class="cmd-search">
+          <span class="cmd-si">🔍</span>
+          <input type="text" id="set-search" placeholder="Search convar, category, description…"
+            oninput="filterSettings()" />
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>ConVar</th>
+                <th>Cat</th>
+                <th>Default</th>
+                <th>Range</th>
+                <th>Your Value</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="set-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CFG EDITOR -->
+      <div class="panel" id="panel-cfgeditor">
+        <div class="p-title">📝 CFG Editor</div>
+        <div class="p-sub">Read existing CFG files from your selected folder, or write raw commands directly.</div>
+
+        <div class="row" style="margin-bottom:.8rem">
+          <button class="btn btn-ghost" onclick="readCfgFile()">&#128194; Open CFG from folder…</button>
+          <button class="btn btn-ghost" onclick="newCfg()">&#10133; New empty</button>
+          <button class="btn btn-ghost" onclick="saveCfgFile()">&#128190; Save to folder</button>
+          <button class="btn btn-ghost" onclick="downloadCfgFile()">&#11015; Download</button>
+        </div>
+
+        <div class="alert alert-info" id="cfg-editor-note">
+          ℹ️ Select your CS2 folder in the sidebar to open/save files directly.
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
+          <span style="font-size:.78rem;color:var(--muted)" id="cfg-filename-label">Unsaved</span>
+          <span style="font-size:.74rem;color:var(--muted)" id="cfg-linecount">0 lines</span>
+        </div>
+        <textarea id="cfg-editor-area" rows="20" placeholder="// Write CS2 commands here…
+// Example:
+sensitivity 1.8
+bind F1 &quot;buy ak47&quot;
+echo &quot;loaded&quot;" oninput="onCfgEdit()"></textarea>
+      </div>
+
+      <!-- COMMAND VIEWER -->
+      <div class="panel" id="panel-cmdviewer">
+        <div class="p-title">🔍 Command Viewer</div>
+        <div class="p-sub">Browse common CS2 commands and ConVars as a reference.</div>
+        <div class="cmd-search">
+          <span class="cmd-si">🔍</span>
+          <input type="text" id="cmd-search" placeholder="Search commands…" oninput="filterCmds()" />
+        </div>
+        <div class="cmd-grid" id="cmd-grid"></div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="panel" id="panel-export">
+        <div class="p-title">💾 Export CFG</div>
+        <div class="p-sub">Combine all your settings, buy binds and switch binds into one <span
+            class="tag">autoexec.cfg</span>.</div>
+
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--muted);margin-bottom:.6rem">Output path:</p>
+          <div class="exp-path" id="exp-path">📁 No folder selected — use the sidebar to pick your CS2 cfg folder.</div>
+          <p style="font-size:.82rem;color:var(--muted)">Add <span class="tag">+exec autoexec</span> to CS2 Steam launch
+            options.</p>
+        </div>
+
+        <div class="alert alert-info" id="exp-api-note">ℹ️ Select your CS2 cfg folder in the sidebar to enable direct
+          saving (Chrome/Edge).</div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+          <span style="font-size:.78rem;color:var(--muted)">Full autoexec.cfg preview</span>
+          <button class="btn btn-ghost" style="font-size:.74rem;padding:.25rem .5rem" onclick="copyFull()">📋
+            Copy</button>
+        </div>
+        <div class="cfg-preview" id="exp-preview">// click &quot;Refresh Preview&quot; or switch to this tab</div>
+
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.7rem">
+          <button class="btn btn-primary" onclick="saveAutoexec()">💾 Save autoexec.cfg to CS2 folder</button>
+          <button class="btn btn-ghost" onclick="downloadAutoexec()">⬇️ Download autoexec.cfg</button>
+          <button class="btn btn-ghost" onclick="refreshExport()">&#8635; Refresh preview</button>
+        </div>
+        <div id="exp-status" style="margin-top:.7rem"></div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="panel" id="panel-about">
+        <div class="p-title">ℹ️ About – Web Edition</div>
+        <div class="p-sub">CS2 CFG Configurator — ported from Windows Python app to web with AI.</div>
+        <div class="card">
+          <p style="font-size:.86rem;color:var(--muted);line-height:1.7;margin-bottom:.8rem">
+            The original project was a <strong style="color:var(--text)">Windows-only Python/CustomTkinter desktop
+              app</strong>. I rewrote it as a fully browser-based web app using AI — every module is ported 1:1 so you
+            get the exact same workflow without installing Python.
+          </p>
+          <p style="font-size:.84rem;color:var(--muted);line-height:1.7;margin-bottom:.6rem"><strong
+              style="color:var(--ctp-green)">What works in the web version:</strong></p>
+          <ul style="margin:0 0 .8rem 1.1rem;color:var(--muted);font-size:.82rem;line-height:1.9">
+            <li>✅ Dashboard with live stats</li>
+            <li>✅ Buy Bind Builder (all weapons, grenades, armor)</li>
+            <li>✅ Bind Switcher: Simple / Toggle / Hold / CFG-Exec</li>
+            <li>✅ Settings Editor with search (38+ ConVars)</li>
+            <li>✅ CFG Editor: read &amp; write .cfg files directly via File System Access API</li>
+            <li>✅ Command Viewer reference</li>
+            <li>✅ Export: generate &amp; save autoexec.cfg</li>
+            <li>✅ LocalStorage persistence (survives page reload)</li>
+          </ul>
+          <p style="font-size:.84rem;color:var(--muted);line-height:1.7;margin-bottom:.6rem"><strong
+              style="color:var(--ctp-red)">Only in the Python app:</strong></p>
+          <ul style="margin:0 0 .8rem 1.1rem;color:var(--muted);font-size:.82rem;line-height:1.9">
+            <li>🔒 Auto-detection of Steam/CS2 installation path</li>
+            <li>🔒 Multi-profile management saved on disk</li>
+          </ul>
+          <p style="font-size:.8rem;color:var(--muted)"><strong>File System Access API</strong> (direct folder write)
+            requires <strong>Chrome 86+</strong> or <strong>Edge 86+</strong>. Firefox/Safari: use the Download button.
+          </p>
+        </div>
+        <a href="https://github.com/vsvito420/cs2-cfg-configurator" class="btn btn-primary" style="margin-top:.5rem">⭐
+          Star on GitHub</a>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="statusbar">
+    <span id="sb-folder">📁 No folder</span>
+    <span>|</span><span id="sb-bb">0 buy binds</span>
+    <span>|</span><span id="sb-sw">0 switch binds</span>
+    <span>|</span><span id="sb-set">0 settings</span>
+    <span>|</span><span>CS2 CFG Configurator – Web Edition</span>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+
+</html>

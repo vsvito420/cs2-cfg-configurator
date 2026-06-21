@@ -23,10 +23,30 @@
 |---|---|
 | **EXE** | Normale Nutzer – einfach starten, kein Python nötig 🟢 |
 | **ZIP** | Entwickler – Quellcode + selbst starten via Python |
+| **🌐 [Web Demo](https://vsvito420.github.io/cs2-cfg-configurator/demo.html)** | Quick-Port im Browser – nur eingeschränkt nutzbar (siehe unten) 🟡 |
 
 _Beide Dateien werden automatisch bei jedem Release gebaut und hochgeladen._
 
 </div>
+
+---
+
+---
+
+## 🌐 Web Edition (Demo) — eingeschränkt!
+
+Es gibt eine **Browser-Demo** unter [vsvito420.github.io/cs2-cfg-configurator/demo.html](https://vsvito420.github.io/cs2-cfg-configurator/demo.html) — das ist allerdings nur ein **Quick-Port** vom Python-Tool.
+
+**Was funktioniert:**
+- ✅ Buy Binds / Bind Switcher / Settings Editor erstellen
+- ✅ Generiertes `autoexec.cfg` in den CS2-`cfg`-Ordner speichern (File System Access API, Chrome/Edge 86+)
+
+**Was NICHT funktioniert:**
+- ❌ **Userdata-Ordner** (Demos, Replays, GPU-Config, gespeicherte ConVars, Autoexec-Backups aus `Steam/userdata/...`) — der Browser hat **keinen Zugriff** darauf
+- ❌ Auto-Erkennung des Steam-/CS2-Installationspfads
+- ❌ Multi-Profil-Management auf der Festplatte
+
+👉 **Für den vollen Funktionsumfang → EXE aus den [Releases](https://github.com/vsvito420/cs2-cfg-configurator/releases/latest) nutzen.**
 
 ---
 
