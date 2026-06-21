@@ -2,6 +2,38 @@
 
 Diese Anleitung beschreibt wie du das Projekt als einzelne `.exe` baust mit **PyInstaller**.
 
+> **Empfehlung:** Nutze das mitgelieferte Build-Skript `build.ps1` –
+> es erledigt alle Schritte (Icon-Konvertierung, PyInstaller-Aufruf,
+> Cleanup, EXE-Report) automatisch. Die manuelle Anleitung unten bleibt
+> als Referenz erhalten.
+
+---
+
+## Schnellstart mit `build.ps1` (empfohlen)
+
+Aus dem Projektordner (`cs2-cfg-configurator/`):
+
+```powershell
+# Standard --onefile Build
+.\build.ps1
+
+# Onedir-Modus (schnellerer Start, Ordner statt einzelner EXE)
+.\build.ps1 -OneDir
+
+# Vorherige Artefakte (build/, dist/, *.spec) loeschen + neu bauen
+.\build.ps1 -Clean
+
+# Icon-Schritt ueberspringen
+.\build.ps1 -SkipIcon
+```
+
+Das Skript installiert fehlendes PyInstaller automatisch via `pip`,
+konvertiert `app/assets/icon.png` zu `icon.ico` (falls noetig), startet
+PyInstaller und gibt am Ende Pfad + Groesse der `.exe` aus.
+
+> Falls die Ausfuehrung blockiert wird:
+> `powershell -ExecutionPolicy Bypass -File .\build.ps1`
+
 ---
 
 ## 1. Voraussetzungen
@@ -10,7 +42,7 @@ Diese Anleitung beschreibt wie du das Projekt als einzelne `.exe` baust mit **Py
 pip install pyinstaller
 ```
 
-> Python 3.11+ und PySide6 müssen bereits installiert sein.
+> Python 3.11+ und PySide6 muessen bereits installiert sein.
 
 ---
 
@@ -44,7 +76,7 @@ pyinstaller \
 
 ### Windows (PowerShell / CMD) – Semikolon als Trennzeichen:
 ```powershell
-pyinstaller `
+python -m PyInstaller `
   --onefile `
   --windowed `
   --name "CS2-CFG-Configurator" `
@@ -54,6 +86,11 @@ pyinstaller `
   --add-data "configs;configs" `
   main.py
 ```
+
+> **Hinweis:** Falls `pyinstaller` nicht direkt aufrufbar ist (häufig bei
+> User-Installationen von Python), verwende stattdessen `python -m PyInstaller`.
+> Das funktioniert immer, solange PyInstaller via `pip install pyinstaller`
+> installiert wurde.
 
 ---
 
