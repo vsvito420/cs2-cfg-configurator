@@ -209,7 +209,7 @@ class DashboardPage(QWidget):
         hl.addWidget(AppIconLabel(76))  # <-- Programm-Icon statt GitHub Avatar
         tc = QVBoxLayout()
         tc.setSpacing(4)
-        g = QLabel("🎮  CS2 CFG Configurator")
+        g = QLabel("🎮  vsvito's CounterStrike2 CFG Configurator")
         g.setStyleSheet("color:#cdd6f4;font-size:20px;font-weight:bold;background:transparent;border:none;")
         s = QLabel("Servus! Hier verwaltest du deine CS2 Configs, Binds und Einstellungen.")
         s.setStyleSheet("color:#6c7086;font-size:12px;background:transparent;border:none;")

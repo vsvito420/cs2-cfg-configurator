@@ -477,9 +477,9 @@ class SettingsReaderPage(QWidget):
         else:
             lines = [f'"{k}"\t"{v}"' for k, v in sorted(items.items())]
         header = [
-            "// CS2 CFG Configurator – Backup",
+            "// vsvito's CounterStrike2 CFG Configurator – Backup",
             f"// Section: {section}  |  Account: {name}  (ID: {sid})",
-            "// Erstellt mit CS2 CFG Configurator", "",
+            "// Erstellt mit vsvito's CounterStrike2 CFG Configurator", "",
         ]
         out.write_text("\n".join(header + lines), encoding="utf-8")
         QMessageBox.information(self, "✅  Backup erstellt", f"Gespeichert nach:\n{out}")

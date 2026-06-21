@@ -1,4 +1,4 @@
-# 📦 CS2 CFG Configurator – EXE Build Anleitung
+# 📦 vsvito's CounterStrike2 CFG Configurator – EXE Build Anleitung
 
 Diese Anleitung beschreibt wie du das Projekt als einzelne `.exe` baust mit **PyInstaller**.
 

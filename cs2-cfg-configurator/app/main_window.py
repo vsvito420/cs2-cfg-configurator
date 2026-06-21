@@ -28,7 +28,7 @@ class ModulePage(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CS2 CFG Configurator")
+        self.setWindowTitle("vsvito's CounterStrike2 CFG Configurator")
         self.resize(1200, 700)
         self.settings = settings_manager.load()
 

@@ -136,5 +136,5 @@ def generate_profile(profile: BindProfile) -> str:
         if blocks:
             sections.append("// ─── CFG Exec Binds ───\n" + "\n\n".join(blocks))
 
-    header = f"// Bind Manager – {profile.name}\n// Generiert vom CS2 CFG Configurator\n\n"
+    header = f"// Bind Manager – {profile.name}\n// Generiert vom vsvito's CounterStrike2 CFG Configurator\n\n"
     return header + "\n\n".join(sections)

@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Builds CS2 CFG Configurator as a single Windows .exe with PyInstaller.
+    Builds vsvito's CounterStrike2 CFG Configurator as a single Windows .exe with PyInstaller.
 
 .DESCRIPTION
     - Checks for PyInstaller (installs via pip if missing).
@@ -28,7 +28,7 @@ $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location -LiteralPath $ProjectRoot
 
 Write-Host ""
-Write-Host "=== CS2 CFG Configurator - Build Script ===" -ForegroundColor Cyan
+Write-Host "=== vsvito's CounterStrike2 CFG Configurator - Build Script ===" -ForegroundColor Cyan
 Write-Host "Projektordner: $ProjectRoot" -ForegroundColor DarkGray
 Write-Host ""
 
