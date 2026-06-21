@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('app\\assets', 'app\\assets'), ('data', 'data'), ('configs', 'configs')],
+    datas=[('app/assets', 'app/assets'), ('data', 'data'), ('configs', 'configs')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\vitos\\OneDrive\\Dokumente\\GitHub\\cs2-cfg-configurator\\cs2-cfg-configurator\\app\\assets\\icon.ico'],
+    icon=['app/assets/icon.ico'],
 )
