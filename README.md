@@ -4,6 +4,13 @@
 
 **Ein modulares Desktop-Tool (Python / PySide6) zum Erstellen, Bearbeiten und Verwalten von CS2-Konfigurationsdateien.**
 
+## ❓ FAQ
+
+**Is it Secure? I get warned when downloading.!)**.. yes edge warns you.
+I tried my best to explain it in github / docs / SECURITY.md 
+→ [Sicherheitsanalyse lesen (docs/SECURITY.md)](docs/SECURITY.md)
+
+
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/UI-PySide6%20%28Qt6%29-green?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
