@@ -1,0 +1,77 @@
+# CS2 CFG Configurator
+
+> A modular desktop application (Python / PySide6) for creating, editing, and managing Counter-Strike 2 (CS2) configuration files. Think of it as a VSCode-inspired GUI editor tailored specifically for CS2 cfg/autoexec files.
+
+## Project Overview
+
+- **Repository:** https://github.com/vsvito420/cs2-cfg-configurator
+- **Author:** vsvito420 (Friedrichshafen, Germany)
+- **License:** CC BY-NC 4.0 (non-commercial use)
+- **Language:** Python 3.11+
+- **UI Framework:** PySide6 (Qt6)
+- **Theme:** Catppuccin Mocha
+- **Platform:** Windows (primary), Browser Demo available
+- **Status:** Work In Progress
+
+## What This Project Does
+
+CS2 CFG Configurator is a GUI tool that allows CS2 players to visually edit their game configuration files instead of manually editing raw `.cfg` text files. It supports:
+
+- **CFG Editor:** Visual editor for CS2 console variables (cvars). Commands are sourced from structured JSON files per category (crosshair, viewmodel, networking, performance, video, map, buy-binds).
+- **Bind Manager:** Create and manage keyboard binds — simple binds, toggle binds (A↔B), hold binds (+alias/-alias), and cfg-exec binds.
+- **Buy Binds:** Visual editor for weapon purchase key bindings.
+- **Settings Page:** App-level appearance settings (colors, sidebar width) applied live.
+
+## Architecture
+
+The project is **modular by design** — each feature lives in its own folder under `app/modules/`. Adding a new module only requires: creating a `QWidget` subclass, registering it in `main_window.py`, and adding an entry to `sidebar.py`.
+
+```
+cs2-cfg-configurator/
+├── main.py                      # Entry point
+├── requirements.txt
+├── configs/                     # Generated & saved CFG files
+├── data/                        # CS2 command definitions (JSON per category)
+│   ├── crosshair/commands.json
+│   ├── viewmodel/commands.json
+│   ├── networking/commands.json
+│   ├── performance/commands.json
+│   ├── video/commands.json
+│   ├── map/commands.json
+│   └── buy-binds/commands.json
+└── app/
+    ├── main_window.py
+    ├── sidebar.py
+    ├── settings_manager.py
+    └── modules/
+        ├── cfg_editor/
+        ├── bind_switcher/
+        ├── buy_binds/
+        └── settings_page/
+```
+
+## Key Files
+
+- [README.md](https://github.com/vsvito420/cs2-cfg-configurator/blob/main/README.md): Full project documentation in German/English
+- [CONTRIBUTING.md](https://github.com/vsvito420/cs2-cfg-configurator/blob/main/CONTRIBUTING.md): How to contribute and add modules
+- [docs/SECURITY.md](https://github.com/vsvito420/cs2-cfg-configurator/blob/main/docs/SECURITY.md): Security analysis (addresses Windows Defender false-positives on the EXE)
+
+## Quick Start
+
+```bash
+git clone https://github.com/vsvito420/cs2-cfg-configurator.git
+cd cs2-cfg-configurator/cs2-cfg-configurator
+pip install -r requirements.txt
+python main.py
+```
+
+Or download the pre-built Windows EXE from [Releases](https://github.com/vsvito420/cs2-cfg-configurator/releases/latest).
+
+## Web Demo
+
+A browser-based demo is available at: https://vsvito420.github.io/cs2-cfg-configurator/docs/demo/demo.html  
+Note: The web demo has limited functionality — no Steam/userdata folder access, no auto-detection of CS2 install path.
+
+## Topics / Tags
+
+counter-strike, counterstrike2, cs2, cfg, config, autoexec, keybinds, buy-binds, python, pyside6, qt6, desktop-app, modular, gui, game-config-editor
