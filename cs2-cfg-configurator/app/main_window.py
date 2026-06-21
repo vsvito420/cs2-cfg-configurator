@@ -12,6 +12,7 @@ from app.modules.buy_binds.viewer import BuyBindsViewer
 from app.modules.cfg_editor.view import CfgEditorPage
 from app.modules.bind_switcher.view import BindManagerPage
 from app.modules.about.view import AboutPage
+from app.modules.settings_compare.view import SettingsComparePage
 from app import settings_manager
 
 
@@ -41,16 +42,17 @@ class MainWindow(QMainWindow):
 
         self.stack = QStackedWidget(self)
         self._pages = {
-            "dashboard":        DashboardPage(),
-            "cfg_editor":       CfgEditorPage(),
-            "command_viewer":   CommandViewerPage(),
-            "bind_switcher":    BindManagerPage(),
-            "settings_reader":  SettingsReaderPage(),
-            "buy_binds_viewer": BuyBindsViewer(),
-            "buy_binds_editor": BuyBindsPage(),
-            "buy_binds_header": ModulePage("🛒  Buy Binds"),
-            "CFG_MAN_settings": SettingsPage(self),
-            "about":            AboutPage(),
+            "dashboard":          DashboardPage(),
+            "cfg_editor":         CfgEditorPage(),
+            "command_viewer":     CommandViewerPage(),
+            "bind_switcher":      BindManagerPage(),
+            "settings_reader":    SettingsReaderPage(),
+            "settings_compare":   SettingsComparePage(),
+            "buy_binds_viewer":   BuyBindsViewer(),
+            "buy_binds_editor":   BuyBindsPage(),
+            "buy_binds_header":   ModulePage("🛒  Buy Binds"),
+            "CFG_MAN_settings":   SettingsPage(self),
+            "about":              AboutPage(),
         }
         for page in self._pages.values():
             self.stack.addWidget(page)

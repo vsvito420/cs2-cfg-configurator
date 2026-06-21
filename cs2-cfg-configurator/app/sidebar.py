@@ -23,6 +23,7 @@ NAV = [
     SidebarItem("🔍  Commands",          "command_viewer"),
     SidebarItem("🔗  Bind Manager",      "bind_switcher"),
     SidebarItem("📶  Aktive Settings",   "settings_reader"),
+    SidebarItem("🔄  Settings vergleichen", "settings_compare"),
     SidebarCategory(
         "🛒  Buy Binds", "buy_binds_header",
         children=[
@@ -70,15 +71,16 @@ class SidebarButton(QPushButton):
 
 class Sidebar(QWidget):
     MODULES = [
-        ("🏠  Dashboard",       "dashboard"),
-        ("⚙️  CFG Editor",      "cfg_editor"),
-        ("🔍  Commands",        "command_viewer"),
-        ("🔗  Bind Manager",    "bind_switcher"),
-        ("📶  Aktive Settings", "settings_reader"),
-        ("📋  View Binds",      "buy_binds_viewer"),
-        ("✏️   Edit Binds",      "buy_binds_editor"),
-        ("🎮  Settings",        "CFG_MAN_settings"),
-        ("💬  Feedback & About","about"),
+        ("🏠  Dashboard",            "dashboard"),
+        ("⚙️  CFG Editor",           "cfg_editor"),
+        ("🔍  Commands",             "command_viewer"),
+        ("🔗  Bind Manager",         "bind_switcher"),
+        ("📶  Aktive Settings",      "settings_reader"),
+        ("🔄  Settings vergleichen",  "settings_compare"),
+        ("📋  View Binds",           "buy_binds_viewer"),
+        ("✏️   Edit Binds",            "buy_binds_editor"),
+        ("🎮  Settings",             "CFG_MAN_settings"),
+        ("💬  Feedback & About",     "about"),
     ]
 
     def __init__(self, main_window, parent=None):
