@@ -29,17 +29,10 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller pillow
 
-      - name: Build .exe with PyInstaller
+      - name: Build .exe with PyInstaller (via .spec)
         working-directory: cs2-cfg-configurator
         run: |
-          python -m PyInstaller `
-            --onefile `
-            --windowed `
-            --name "CS2-CFG-Configurator" `
-            --add-data "app/assets;app/assets" `
-            --add-data "data;data" `
-            --add-data "configs;configs" `
-            main.py
+          python -m PyInstaller CS2-CFG-Configurator.spec
 
       - name: Upload .exe as artifact
         uses: actions/upload-artifact@v4
@@ -66,7 +59,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: "CS2 CFG Configurator ${{ github.ref_name }}"
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'pre') }}
           body: |
             ## 🎮 CS2 CFG Configurator ${{ github.ref_name }}
 
@@ -74,7 +67,7 @@ jobs:
             1. `CS2-CFG-Configurator.exe` herunterladen
             2. Starten – kein Python oder pip nötig!
 
-            ### 📄 Lizenz
+            ### 📝 Lizenz
             CC BY-NC 4.0 – keine kommerzielle Nutzung ohne Erlaubnis.
           files: dist/CS2-CFG-Configurator.exe
           token: ${{ secrets.GITHUB_TOKEN }}
