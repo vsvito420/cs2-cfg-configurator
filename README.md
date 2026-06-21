@@ -1,29 +1,64 @@
-# CounterStrike 2 CFG Configurator (cs2)
+<div align="center">
 
-Ein modulares Desktop-Tool (Python / PySide6) zum Erstellen, Bearbeiten und Verwalten von CS2-Konfigurationsdateien.
+# 🎮 CS2 CFG Configurator
+
+**Ein modulares Desktop-Tool (Python / PySide6) zum Erstellen, Bearbeiten und Verwalten von CS2-Konfigurationsdateien.**
+
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![PySide6](https://img.shields.io/badge/UI-PySide6%20%28Qt6%29-green?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightblue)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Stars](https://img.shields.io/github/stars/vsvito420/cs2-cfg-configurator?style=social)](https://github.com/vsvito420/cs2-cfg-configurator/stargazers)
 
 ---
 
-## Schnellstart
+## ⬇️ Download
+
+> **Releases kommen bald!** Bis dahin kannst du das Projekt direkt als ZIP herunterladen:
+
+[![Download ZIP](https://img.shields.io/badge/Download-Source%20ZIP-blue?style=for-the-badge&logo=github)](https://github.com/vsvito420/cs2-cfg-configurator/archive/refs/heads/main.zip)
+
+_Sobald ein offizieller Release verfügbar ist, erscheint hier ein direkter Installer-Link._
+
+</div>
+
+---
+
+## 🚀 Schnellstart
 
 ```bash
-cd cs2-cfg-configurator
+git clone https://github.com/vsvito420/cs2-cfg-configurator.git
+cd cs2-cfg-configurator/cs2-cfg-configurator
 pip install -r requirements.txt
 python main.py
 ```
 
 ---
 
-## Projektstruktur
+## 🤝 Mitmachen (Contributing)
+
+Beiträge sind herzlich willkommen! Bitte beachte:
+
+- **Fork** das Repo, erstelle einen Branch und öffne einen **Pull Request**
+- Neue Module bitte modular halten (eigener Ordner unter `app/modules/`)
+- Kein kommerzieller Einsatz ohne schriftliche Erlaubnis (→ [Lizenz](#lizenz))
+- Für größere Änderungen erst ein **Issue** öffnen und besprechen
+
+Details findest du in [`CONTRIBUTING.md`](CONTRIBUTING.md) _(coming soon)_.
+
+---
+
+## 📁 Projektstruktur
 
 ```
 cs2-cfg-configurator/
 ├── main.py                      # Einstiegspunkt – startet die App
 ├── requirements.txt
 ├── configs/                     # ⚙️ Alle generierten & gespeicherten CFG-Dateien
-│   ├── app_settings.json        # App-Einstellungen (Farben, Sidebar-Breite ...)
-│   ├── bind-manager/            # Output-Ordner des Bind Managers
-│   └── onBind-switcher/         # (Legacy)
+│   ├── app_settings.json
+│   ├── bind-manager/
+│   └── onBind-switcher/
 ├── data/                        # 📊 CS2-Command-Definitionen (JSON)
 │   ├── crosshair/commands.json
 │   ├── viewmodel/commands.json
@@ -33,116 +68,82 @@ cs2-cfg-configurator/
 │   ├── video/commands.json
 │   └── buy-binds/commands.json
 └── app/
-    ├── main_window.py           # QMainWindow – registriert alle Module im QStackedWidget
-    ├── sidebar.py               # Sidebar-Navigation (NAV-Liste → Buttons)
-    ├── settings_manager.py      # load() / save() für app_settings.json
+    ├── main_window.py
+    ├── sidebar.py
+    ├── settings_manager.py
     └── modules/                 # 🧩 Jedes Modul = eigener Unterordner
-        ├── cfg_editor/          # Visueller CS2-Settings-Editor (Slider, Dropdowns)
-        ├── bind_switcher/       # Bind Manager (Simple / Toggle / Hold / CFG Exec)
-        ├── buy_binds/           # Buy-Bind Viewer & Editor
-        └── settings_page/       # App-Einstellungen (Farben, Pfade)
+        ├── cfg_editor/
+        ├── bind_switcher/
+        ├── buy_binds/
+        └── settings_page/
 ```
 
 ---
 
-## Modularer Aufbau
+## 🧩 Modularer Aufbau
 
-### Wie ein Modul registriert wird
+### Neues Modul hinzufügen
 
-**1. Modul anlegen** – `app/modules/<name>/view.py` mit einer `QWidget`-Klasse:
+**1.** `app/modules/<name>/view.py` mit einer `QWidget`-Klasse anlegen:
 ```python
 class MeinModulPage(QWidget):
     def __init__(self, parent=None): ...
 ```
 
-**2. In `main_window.py` importieren & eintragen:**
+**2.** In `main_window.py` importieren & eintragen:
 ```python
 from app.modules.mein_modul.view import MeinModulPage
-
-self._pages = {
-    "mein_modul": MeinModulPage(),
-    # ...
-}
+self._pages = { "mein_modul": MeinModulPage() }
 ```
 
-**3. In `sidebar.py` zur NAV-Liste hinzufügen:**
+**3.** In `sidebar.py` zur NAV-Liste hinzufügen:
 ```python
-NAV = [
-    SidebarItem("📦  Mein Modul", "mein_modul"),
-    # ...
-]
+NAV = [ SidebarItem("📦  Mein Modul", "mein_modul") ]
 ```
 
-Das war’s. `main_window.load_module(key)` switcht automatisch zur richtigen Seite.
+`main_window.load_module(key)` switcht automatisch zur richtigen Seite.
 
 ---
 
-## Module überblick
+## 🔧 Module Überblick
 
 ### ⚙️ CFG Editor (`cfg_editor`)
 Visueller Editor für CS2-Einstellungen. Commands kommen aus `data/<kategorie>/commands.json`.
-Jede Zeile hat Command-Name, Typ (Slider / Dropdown / Text), Default und Range.
-
-**Wichtige Dateien:**
-- `data_loader.py` – liest `commands.json` der jeweiligen Kategorie
-- `generator.py` – baut daraus `set command value`-Zeilen
-- `view.py` – rendert die UI-Widgets dynamisch
 
 ### 🔗 Bind Manager (`bind_switcher`)
-Erstellt und exportiert CS2-Binds in vier Typen:
 
 | Typ | Was es macht | CS2-Output |
 |---|---|---|
 | **Simple** | Taste → Befehl | `bind "k" "slot1"` |
 | **Toggle** | Taste wechselt A ↔ B | `alias` Doppel-Pattern |
 | **Hold** | Halten = aktiv, loslassen = zurück | `alias +name / -name` |
-| **CFG Exec** | Taste lädt `.cfg`-Datei (simple/hold/toggle) | `bind "k" "exec file.cfg"` |
-
-**Wichtige Dateien:**
-- `model.py` – Datenklassen (SimpleBind, ToggleBind, HoldBind, CfgBind)
-- `generator.py` – wandelt Modelle in CFG-Text um
-- `widgets.py` – UI-Karten pro Bind-Typ (2-Zeilen-Layout)
-- `autocomplete.py` – lädt alle Commands aus `data/` für QCompleter
-- `view.py` – Tabs, Splitter, CFG-Preview, Speichern
-
-Output-Ordner: `configs/bind-manager/`
+| **CFG Exec** | Taste lädt `.cfg`-Datei | `bind "k" "exec file.cfg"` |
 
 ### 🛒 Buy Binds (`buy_binds`)
 Viewer und Editor für Waffen-Kauf-Binds.
-- `viewer.py` – Listenansicht der aktuellen Binds
-- `view.py` (Editor) – Binds ändern & speichern
 
 ### 🎮 Settings (`settings_page`)
-Farben und Sidebar-Breite ändern. Ruft nach dem Speichern `main_window.apply_settings()` auf, damit die UI sofort aktualisiert wird.
+Farben und Sidebar-Breite. Änderungen werden sofort via `apply_settings()` übernommen.
 
 ---
 
-## Neue Command-Kategorie hinzufügen
-
-1. Ordner `data/<name>/` anlegen
-2. `commands.json` erstellen:
-```json
-[
-  {
-    "command": "cl_beispiel",
-    "default": "1",
-    "range": "0 – 10",
-    "description": "Beispiel-Einstellung"
-  }
-]
-```
-3. In `cfg_editor/data_loader.py` unter `CATEGORY_META` eintragen:
-```python
-"name": {"label": "📦 Label", "folder": "name"}
-```
-
----
-
-## Tech Stack
+## 🛠️ Tech Stack
 
 | | |
 |---|---|
 | **UI** | PySide6 (Qt6) |
 | **Sprache** | Python 3.11+ |
-| **Daten** | JSON (Commands), JSON (Settings) |
+| **Daten** | JSON (Commands & Settings) |
 | **Theme** | Catppuccin Mocha |
+
+---
+
+## 📄 Lizenz
+
+Dieses Projekt steht unter der **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)** Lizenz.
+
+- ✅ Freie Nutzung, Weitergabe und Anpassung
+- ✅ Beiträge & Forks willkommen
+- ❌ Keine kommerzielle Nutzung ohne ausdrückliche Genehmigung
+
+© 2026 [vsvito420](https://github.com/vsvito420)
