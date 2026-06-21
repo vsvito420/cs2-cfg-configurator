@@ -3,825 +3,1092 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CS2 CFG Configurator – Web Demo</title>
+  <title>CS2 CFG Configurator – Web Edition</title>
   <style>
     :root {
-      --ctp-base:    #1e1e2e;
-      --ctp-mantle:  #181825;
-      --ctp-crust:   #11111b;
-      --ctp-surface0:#313244;
-      --ctp-surface1:#45475a;
-      --ctp-surface2:#585b70;
-      --ctp-overlay0:#6c7086;
-      --ctp-subtext0:#a6adc8;
-      --ctp-subtext1:#bac2de;
-      --ctp-text:    #cdd6f4;
-      --ctp-lavender:#b4befe;
-      --ctp-blue:    #89b4fa;
-      --ctp-sapphire:#74c7ec;
-      --ctp-sky:     #89dceb;
-      --ctp-teal:    #94e2d5;
-      --ctp-green:   #a6e3a1;
-      --ctp-yellow:  #f9e2af;
-      --ctp-peach:   #fab387;
-      --ctp-maroon:  #eba0ac;
-      --ctp-red:     #f38ba8;
-      --ctp-mauve:   #cba6f7;
-      --ctp-pink:    #f5c2e7;
-      --ctp-flamingo:#f2cdcd;
-      --ctp-rosewater:#f5e0dc;
-
-      --bg:      var(--ctp-base);
-      --surface: var(--ctp-mantle);
-      --border:  var(--ctp-surface0);
-      --accent:  var(--ctp-mauve);
-      --accent2: var(--ctp-blue);
-      --text:    var(--ctp-text);
-      --muted:   var(--ctp-subtext0);
-      --radius:  10px;
+      --ctp-base:#1e1e2e;--ctp-mantle:#181825;--ctp-crust:#11111b;
+      --ctp-surface0:#313244;--ctp-surface1:#45475a;--ctp-surface2:#585b70;
+      --ctp-overlay0:#6c7086;--ctp-subtext0:#a6adc8;--ctp-subtext1:#bac2de;
+      --ctp-text:#cdd6f4;--ctp-lavender:#b4befe;--ctp-blue:#89b4fa;
+      --ctp-sapphire:#74c7ec;--ctp-sky:#89dceb;--ctp-teal:#94e2d5;
+      --ctp-green:#a6e3a1;--ctp-yellow:#f9e2af;--ctp-peach:#fab387;
+      --ctp-maroon:#eba0ac;--ctp-red:#f38ba8;--ctp-mauve:#cba6f7;
+      --ctp-pink:#f5c2e7;
+      --bg:var(--ctp-base);--surface:var(--ctp-mantle);--border:var(--ctp-surface0);
+      --accent:var(--ctp-mauve);--text:var(--ctp-text);--muted:var(--ctp-subtext0);
+      --radius:8px;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;}
 
     /* NAV */
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.85rem 2rem;
-      border-bottom: 1px solid var(--border);
-      background: rgba(24,24,37,0.92);
-      backdrop-filter: blur(12px);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-logo { font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); }
-    .nav-logo span { color: var(--text); }
-    nav ul { list-style: none; display: flex; gap: 1.5rem; }
-    nav a { color: var(--muted); text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
-    nav a:hover { color: var(--accent); }
-    .nav-badge {
-      background: rgba(203,166,247,0.12); color: var(--accent);
-      border: 1px solid rgba(203,166,247,0.3);
-      border-radius: 999px; padding: 0.2rem 0.7rem;
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+    nav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(24,24,37,.95);backdrop-filter:blur(12px);position:sticky;top:0;z-index:200;}
+    .nav-logo{font-weight:700;font-size:1rem;color:var(--accent);letter-spacing:.04em}
+    .nav-logo span{color:var(--text)}
+    nav ul{list-style:none;display:flex;gap:1.2rem;align-items:center}
+    nav a{color:var(--muted);text-decoration:none;font-size:.85rem;transition:color .2s}
+    nav a:hover{color:var(--accent)}
+    .badge{background:rgba(203,166,247,.12);color:var(--accent);border:1px solid rgba(203,166,247,.3);border-radius:999px;padding:.18rem .65rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .badge-web{background:rgba(137,180,250,.12);color:var(--ctp-blue);border:1px solid rgba(137,180,250,.3)}
 
-    /* LAYOUT */
-    .app-shell {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      height: calc(100vh - 54px);
-    }
+    /* SHELL */
+    .shell{display:flex;flex:1;overflow:hidden;height:calc(100vh - 48px - 26px)}
 
     /* SIDEBAR */
-    .sidebar {
-      width: 220px;
-      min-width: 220px;
-      background: var(--ctp-crust);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-    .sidebar-section { padding: 1rem 0.5rem 0.5rem; }
-    .sidebar-label {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--muted);
-      padding: 0 0.6rem 0.5rem;
-    }
-    .sidebar-item {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.5rem 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.88rem;
-      color: var(--ctp-subtext1);
-      transition: background 0.15s, color 0.15s;
-      user-select: none;
-    }
-    .sidebar-item:hover { background: var(--ctp-surface0); color: var(--text); }
-    .sidebar-item.active { background: rgba(203,166,247,0.15); color: var(--accent); }
-    .sidebar-item .icon { font-size: 1rem; width: 1.2rem; text-align: center; }
+    .sidebar{width:210px;min-width:210px;background:var(--ctp-crust);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+    .folder-bar{padding:.6rem .7rem;border-bottom:1px solid var(--border);background:var(--ctp-mantle)}
+    .folder-bar small{font-size:.68rem;color:var(--muted);display:block;margin-bottom:.3rem}
+    .btn-folder{display:flex;align-items:center;gap:.4rem;width:100%;background:var(--ctp-surface0);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.38rem .6rem;font-size:.8rem;cursor:pointer;transition:border-color .2s}
+    .btn-folder:hover{border-color:var(--accent)}
+    #folder-name{font-size:.7rem;color:var(--ctp-green);margin-top:.28rem;word-break:break-all;min-height:.9rem}
+    .sb-section{padding:.75rem .4rem .3rem}
+    .sb-label{font-size:.64rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 .5rem .4rem}
+    .sb-item{display:flex;align-items:center;gap:.45rem;padding:.42rem .6rem;border-radius:5px;cursor:pointer;font-size:.84rem;color:var(--ctp-subtext1);transition:background .15s,color .15s;user-select:none}
+    .sb-item:hover{background:var(--ctp-surface0);color:var(--text)}
+    .sb-item.active{background:rgba(203,166,247,.15);color:var(--accent)}
+    .sb-icon{font-size:.95rem;width:1.1rem;text-align:center}
 
-    /* FOLDER PICKER */
-    .folder-bar {
-      padding: 0.75rem 0.8rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--ctp-mantle);
-    }
-    .folder-bar p { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.4rem; }
-    .btn-folder {
-      display: flex; align-items: center; gap: 0.5rem;
-      width: 100%;
-      background: var(--ctp-surface0);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      padding: 0.45rem 0.7rem;
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    .btn-folder:hover { border-color: var(--accent); }
-    #folder-name { font-size: 0.75rem; color: var(--ctp-green); margin-top: 0.35rem; word-break: break-all; }
+    /* MAIN */
+    .main{flex:1;overflow-y:auto;padding:1.25rem 1.75rem}
+    .panel{display:none}.panel.active{display:block}
+    .p-title{font-size:1.2rem;font-weight:700;color:var(--ctp-lavender);margin-bottom:.2rem}
+    .p-sub{font-size:.84rem;color:var(--muted);margin-bottom:1.2rem}
 
-    /* MAIN PANEL */
-    .main-panel {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.5rem 2rem;
+    /* COMMON CONTROLS */
+    label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem}
+    input[type=text],input[type=number],select,textarea{
+      background:var(--ctp-surface0);border:1px solid var(--border);border-radius:5px;
+      color:var(--text);padding:.42rem .6rem;font-size:.84rem;font-family:inherit;outline:none;transition:border-color .2s;width:100%
     }
+    input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+    select option{background:var(--ctp-surface0)}
+    textarea{resize:vertical;font-family:'Consolas','Courier New',monospace;font-size:.8rem;color:var(--ctp-green)}
+    input[type=checkbox]{accent-color:var(--ctp-mauve);width:1rem;height:1rem;cursor:pointer}
 
-    /* TABS / PAGE PANELS */
-    .panel { display: none; }
-    .panel.active { display: block; }
+    .btn{display:inline-flex;align-items:center;gap:.35rem;padding:.42rem .95rem;border-radius:5px;font-weight:600;font-size:.84rem;cursor:pointer;border:none;transition:all .2s;white-space:nowrap;font-family:inherit}
+    .btn-primary{background:linear-gradient(135deg,var(--ctp-mauve),var(--ctp-blue));color:var(--ctp-crust)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(203,166,247,.25)}
+    .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-danger{background:transparent;color:var(--ctp-red);border:1px solid rgba(243,139,168,.3);padding:.3rem .6rem;font-size:.76rem}
+    .btn-danger:hover{background:rgba(243,139,168,.1)}
+    .btn-green{background:linear-gradient(135deg,var(--ctp-teal),var(--ctp-green));color:var(--ctp-crust)}
 
-    .panel-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 0.3rem;
-      color: var(--ctp-lavender);
-    }
-    .panel-sub {
-      font-size: 0.88rem;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
-    }
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.9rem}
+    .row{display:flex;gap:.7rem;align-items:end;flex-wrap:wrap}
+    .col{flex:1;min-width:120px}
+    .cfg-preview{background:var(--ctp-crust);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem;font-family:'Consolas','Courier New',monospace;font-size:.78rem;color:var(--ctp-green);min-height:90px;white-space:pre;overflow-x:auto;margin-bottom:.8rem}
+    .alert{border-radius:5px;padding:.5rem .8rem;font-size:.8rem;margin-bottom:.7rem;display:flex;align-items:flex-start;gap:.45rem}
+    .alert-info{background:rgba(137,180,250,.1);border:1px solid rgba(137,180,250,.25);color:var(--ctp-blue)}
+    .alert-ok{background:rgba(166,227,161,.1);border:1px solid rgba(166,227,161,.25);color:var(--ctp-green)}
+    .alert-warn{background:rgba(249,226,175,.1);border:1px solid rgba(249,226,175,.25);color:var(--ctp-yellow)}
+    .alert-red{background:rgba(243,139,168,.1);border:1px solid rgba(243,139,168,.25);color:var(--ctp-red)}
+    .divider{border:none;border-top:1px solid var(--border);margin:.9rem 0}
+    .tag{background:var(--ctp-surface0);color:var(--ctp-peach);border-radius:4px;padding:.1rem .45rem;font-family:'Consolas',monospace;font-size:.8em}
 
-    /* BIND GENERATOR */
-    .bind-form {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-      display: grid;
-      grid-template-columns: 160px 1fr auto;
-      gap: 0.75rem;
-      align-items: end;
-    }
-    label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 0.35rem; }
-    input[type="text"], select, textarea {
-      width: 100%;
-      background: var(--ctp-surface0);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      padding: 0.5rem 0.7rem;
-      font-size: 0.88rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
-    select option { background: var(--ctp-surface0); }
+    /* DASHBOARD */
+    .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin-bottom:1.2rem}
+    .dash-card{background:var(--ctp-mantle);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+    .dash-num{font-size:2rem;font-weight:800;color:var(--accent);line-height:1}
+    .dash-lbl{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+    .dash-notice{background:rgba(203,166,247,.07);border:1px solid rgba(203,166,247,.2);border-radius:var(--radius);padding:1rem 1.2rem;font-size:.84rem;color:var(--muted);line-height:1.6}
+    .dash-notice strong{color:var(--ctp-lavender)}
+    .dash-notice code{background:var(--ctp-surface0);color:var(--ctp-peach);padding:.05rem .35rem;border-radius:3px;font-size:.82em}
 
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.5rem 1.1rem;
-      border-radius: 6px;
-      font-weight: 600; font-size: 0.88rem;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--ctp-mauve), var(--ctp-blue));
-      color: var(--ctp-crust);
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(203,166,247,0.25); }
-    .btn-ghost {
-      background: transparent; color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-danger {
-      background: transparent; color: var(--ctp-red);
-      border: 1px solid rgba(243,139,168,0.3);
-      padding: 0.4rem 0.7rem;
-      font-size: 0.78rem;
-    }
-    .btn-danger:hover { background: rgba(243,139,168,0.1); }
+    /* BUY BINDS */
+    .weapon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.45rem;margin-bottom:.8rem}
+    .weapon-chip{display:flex;align-items:center;gap:.45rem;background:var(--ctp-surface0);border:1px solid var(--border);border-radius:5px;padding:.38rem .65rem;font-size:.8rem;cursor:pointer;transition:border-color .2s,background .15s}
+    .weapon-chip:hover{border-color:var(--accent)}
+    .weapon-chip.selected{border-color:var(--ctp-green);background:rgba(166,227,161,.1)}
+    .weapon-chip label{color:var(--text);cursor:pointer;margin:0;font-size:.8rem}
+    .weap-section-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:.8rem 0 .4rem}
+    .buy-preview-row{display:flex;gap:.5rem;align-items:end;margin-bottom:.7rem;flex-wrap:wrap}
+    .buy-bind-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem}
+    .buy-bind-row{background:var(--ctp-surface0);border:1px solid var(--border);border-radius:5px;padding:.45rem .8rem;display:flex;align-items:center;gap:.8rem;font-size:.82rem;font-family:'Consolas',monospace}
+    .bkey{color:var(--ctp-peach);font-weight:700;min-width:55px}
+    .bcmd{flex:1;color:var(--ctp-blue)}
 
-    /* BIND LIST */
-    .bind-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
-    .bind-row {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.65rem 1rem;
-      display: flex; align-items: center; gap: 1rem;
-      font-size: 0.88rem;
-      font-family: 'Consolas', monospace;
-      color: var(--ctp-text);
-    }
-    .bind-key {
-      background: var(--ctp-surface0);
-      color: var(--ctp-peach);
-      border-radius: 4px;
-      padding: 0.15rem 0.55rem;
-      font-weight: 700;
-      min-width: 60px;
-      text-align: center;
-    }
-    .bind-cmd { flex: 1; color: var(--ctp-blue); }
-    .bind-empty { color: var(--muted); font-style: italic; font-size: 0.85rem; text-align: center; padding: 1.5rem; }
+    /* BIND SWITCHER */
+    .bs-type-tabs{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap}
+    .bs-tab{padding:.35rem .85rem;border-radius:5px;border:1px solid var(--border);cursor:pointer;font-size:.82rem;color:var(--muted);background:transparent;font-family:inherit;transition:all .2s}
+    .bs-tab.active{background:rgba(203,166,247,.15);color:var(--accent);border-color:rgba(203,166,247,.4)}
+    .bs-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.9rem}
+    .bs-list{display:flex;flex-direction:column;gap:.45rem;margin-bottom:.9rem}
+    .bs-row{background:var(--ctp-surface0);border:1px solid var(--border);border-radius:5px;padding:.45rem .85rem;display:flex;align-items:center;gap:.75rem;font-size:.8rem}
+    .bs-type-badge{font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.12rem .45rem;border-radius:3px}
+    .bt-simple{background:rgba(137,180,250,.15);color:var(--ctp-blue)}
+    .bt-toggle{background:rgba(166,227,161,.15);color:var(--ctp-green)}
+    .bt-hold{background:rgba(249,226,175,.15);color:var(--ctp-yellow)}
+    .bt-cfg{background:rgba(203,166,247,.15);color:var(--ctp-mauve)}
 
-    /* CFG PREVIEW */
-    .cfg-preview {
-      background: var(--ctp-crust);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem 1.25rem;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 0.82rem;
-      color: var(--ctp-green);
-      min-height: 120px;
-      white-space: pre;
-      overflow-x: auto;
-      margin-bottom: 1rem;
-    }
+    /* SETTINGS TABLE */
+    .tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+    .tbl th{text-align:left;padding:.45rem .65rem;color:var(--muted);font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+    .tbl td{padding:.42rem .65rem;border-bottom:1px solid rgba(49,50,68,.5);vertical-align:middle}
+    .tbl tr:hover td{background:rgba(49,50,68,.4)}
+    .cv{font-family:'Consolas',monospace;color:var(--ctp-blue)}
+    .cd{font-family:'Consolas',monospace;color:var(--ctp-peach)}
+    .tbl input[type=text]{width:90px;padding:.26rem .4rem;font-family:'Consolas',monospace;font-size:.78rem}
 
-    /* SETTINGS EDITOR */
-    .settings-search {
-      margin-bottom: 1rem;
-      position: relative;
-    }
-    .settings-search input {
-      padding-left: 2.2rem;
-    }
-    .search-icon {
-      position: absolute;
-      left: 0.7rem; top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 0.9rem;
-      pointer-events: none;
-    }
-    .settings-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-    .settings-table th {
-      text-align: left;
-      padding: 0.5rem 0.75rem;
-      color: var(--muted);
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
-    }
-    .settings-table td {
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid rgba(49,50,68,0.5);
-      vertical-align: middle;
-    }
-    .settings-table tr:hover td { background: rgba(49,50,68,0.4); }
-    .cvar-name { font-family: 'Consolas', monospace; color: var(--ctp-blue); }
-    .cvar-default { font-family: 'Consolas', monospace; color: var(--ctp-peach); }
-    .cvar-range { font-size: 0.75rem; color: var(--muted); }
-    .settings-table input[type="text"] {
-      width: 100px;
-      padding: 0.3rem 0.5rem;
-      font-family: 'Consolas', monospace;
-    }
+    /* CFG EDITOR */
+    .file-list{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.8rem}
+    .file-row{display:flex;align-items:center;gap:.6rem;background:var(--ctp-surface0);border:1px solid var(--border);border-radius:5px;padding:.38rem .7rem;cursor:pointer;font-size:.82rem;font-family:'Consolas',monospace;transition:border-color .2s}
+    .file-row:hover,.file-row.active{border-color:var(--accent);color:var(--accent)}
+    .file-icon{font-size:.9rem}
+    #cfg-editor-area{min-height:300px;line-height:1.55}
 
-    /* EXPORT PANEL */
-    .export-info {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-    }
-    .export-info p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; }
-    .export-path {
-      font-family: 'Consolas', monospace;
-      font-size: 0.82rem;
-      color: var(--ctp-peach);
-      background: var(--ctp-crust);
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 0.4rem 0.7rem;
-      margin-bottom: 0.75rem;
-    }
-    .alert {
-      border-radius: 6px;
-      padding: 0.6rem 0.9rem;
-      font-size: 0.83rem;
-      margin-bottom: 0.75rem;
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .alert-info { background: rgba(137,196,250,0.1); border: 1px solid rgba(137,196,250,0.25); color: var(--ctp-blue); }
-    .alert-success { background: rgba(166,227,161,0.1); border: 1px solid rgba(166,227,161,0.25); color: var(--ctp-green); }
-    .alert-warn { background: rgba(249,226,175,0.1); border: 1px solid rgba(249,226,175,0.25); color: var(--ctp-yellow); }
+    /* COMMAND VIEWER */
+    .cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.5rem}
+    .cmd-card{background:var(--ctp-mantle);border:1px solid var(--border);border-radius:5px;padding:.65rem .8rem}
+    .cmd-name{font-family:'Consolas',monospace;color:var(--ctp-blue);font-size:.84rem;font-weight:700;margin-bottom:.2rem}
+    .cmd-desc{color:var(--muted);font-size:.76rem;line-height:1.4}
+    .cmd-search{margin-bottom:.8rem;position:relative}
+    .cmd-search input{padding-left:2rem}
+    .cmd-si{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:.85rem}
+
+    /* EXPORT */
+    .exp-path{font-family:'Consolas',monospace;font-size:.78rem;color:var(--ctp-peach);background:var(--ctp-crust);border:1px solid var(--border);border-radius:4px;padding:.35rem .6rem;margin-bottom:.7rem}
 
     /* STATUSBAR */
-    .statusbar {
-      background: linear-gradient(90deg, var(--ctp-mauve), var(--ctp-blue));
-      color: var(--ctp-crust);
-      font-size: 0.75rem;
-      padding: 0.25rem 1rem;
-      display: flex; align-items: center; gap: 1rem;
-      font-weight: 600;
-    }
-    .statusbar span { opacity: 0.85; }
+    .statusbar{background:linear-gradient(90deg,var(--ctp-mauve),var(--ctp-blue));color:var(--ctp-crust);font-size:.72rem;padding:.22rem 1rem;display:flex;align-items:center;gap:.8rem;font-weight:600;flex-shrink:0}
+    .statusbar span{opacity:.85}
 
-    /* KEYBOARD VISUAL */
-    .keyboard-hint {
-      display: flex; gap: 0.35rem; align-items: center;
-      font-size: 0.8rem; color: var(--muted);
-      margin-bottom: 1rem;
-    }
-    kbd {
-      background: var(--ctp-surface0);
-      border: 1px solid var(--ctp-surface2);
-      border-radius: 4px;
-      padding: 0.15rem 0.45rem;
-      font-size: 0.78rem;
-      color: var(--ctp-text);
-      font-family: inherit;
-    }
-
-    /* Responsive */
-    @media (max-width: 700px) {
-      .app-shell { flex-direction: column; height: auto; }
-      .sidebar { width: 100%; min-width: unset; height: auto; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
-      .bind-form { grid-template-columns: 1fr; }
+    @media(max-width:640px){
+      .shell{flex-direction:column;height:auto}
+      .sidebar{width:100%;min-width:unset;flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--border)}
     }
   </style>
 </head>
 <body>
 
-  <nav>
-    <div class="nav-logo">CS2 <span>CFG Configurator</span></div>
-    <ul>
-      <li><a href="index.html">← Back</a></li>
-      <li><span class="nav-badge">Web Demo</span></li>
-      <li><a href="https://github.com/vsvito420/cs2-cfg-configurator">GitHub</a></li>
-    </ul>
-  </nav>
+<nav>
+  <div class="nav-logo">CS2 <span>CFG Configurator</span></div>
+  <ul>
+    <li><a href="index.html">← Back</a></li>
+    <li><span class="badge">Open Source</span></li>
+    <li><span class="badge badge-web">Web Edition</span></li>
+    <li><a href="https://github.com/vsvito420/cs2-cfg-configurator">GitHub</a></li>
+  </ul>
+</nav>
 
-  <div class="app-shell">
+<div class="shell">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <!-- Folder Picker -->
-      <div class="folder-bar">
-        <p>CS2 Config Folder</p>
-        <button class="btn-folder" id="btn-pick-folder" onclick="pickFolder()">
-          <span>📁</span> <span>Select Folder…</span>
-        </button>
-        <div id="folder-name">No folder selected</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="folder-bar">
+      <small>CS2 cfg Folder</small>
+      <button class="btn-folder" onclick="pickFolder()">📁 Select Folder…</button>
+      <div id="folder-name">No folder selected</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Modules</div>
+      <div class="sb-item active" onclick="sw('dashboard',this)"><span class="sb-icon">📊</span> Dashboard</div>
+      <div class="sb-item" onclick="sw('buybinds',this)"><span class="sb-icon">🛡️</span> Buy Binds</div>
+      <div class="sb-item" onclick="sw('bindswitcher',this)"><span class="sb-icon">⌨️</span> Bind Switcher</div>
+      <div class="sb-item" onclick="sw('settings',this)"><span class="sb-icon">🔧</span> Settings Editor</div>
+      <div class="sb-item" onclick="sw('cfgeditor',this)"><span class="sb-icon">📝</span> CFG Editor</div>
+      <div class="sb-item" onclick="sw('cmdviewer',this)"><span class="sb-icon">🔍</span> Command Viewer</div>
+      <div class="sb-item" onclick="sw('export',this)"><span class="sb-icon">💾</span> Export</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Info</div>
+      <div class="sb-item" onclick="sw('about',this)"><span class="sb-icon">ℹ️</span> About</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="p-title">📊 Dashboard</div>
+      <div class="p-sub">Overview of your current configuration session.</div>
+      <div class="dash-grid">
+        <div class="dash-card"><div class="dash-num" id="d-buybinds">0</div><div class="dash-lbl">Buy Binds</div></div>
+        <div class="dash-card"><div class="dash-num" id="d-switchbinds">0</div><div class="dash-lbl">Switch Binds</div></div>
+        <div class="dash-card"><div class="dash-num" id="d-settings">0</div><div class="dash-lbl">Settings changed</div></div>
+        <div class="dash-card"><div class="dash-num" id="d-cfglines">0</div><div class="dash-lbl">CFG Editor lines</div></div>
       </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-label">Tools</div>
-        <div class="sidebar-item active" onclick="switchPanel('binds', this)">
-          <span class="icon">⌨️</span> Bind Generator
-        </div>
-        <div class="sidebar-item" onclick="switchPanel('settings', this)">
-          <span class="icon">🔧</span> Settings Editor
-        </div>
-        <div class="sidebar-item" onclick="switchPanel('export', this)">
-          <span class="icon">💾</span> Export CFG
-        </div>
+      <div class="dash-notice">
+        <strong>🌐 Web Edition</strong> — Originally this was a <strong>Windows-only Python app</strong>. I rewrote it as a web version with AI so anyone can use it directly in the browser without installing anything.<br><br>
+        The web version covers all interactive features. Only auto-detection of your Steam path requires the desktop app. Select your CS2 <code>cfg</code> folder in the sidebar to enable direct file saving via the <strong>File System Access API</strong> (Chrome/Edge 86+).<br><br>
+        <strong>Launch option tip:</strong> Add <code>+exec autoexec</code> to CS2 launch options in Steam so your config loads on startup.
       </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-label">Info</div>
-        <div class="sidebar-item" onclick="switchPanel('about', this)">
-          <span class="icon">ℹ️</span> About
-        </div>
+      <hr class="divider">
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="sw('buybinds',getSbItem(1))">Start: Buy Binds →</button>
+        <button class="btn btn-ghost" onclick="sw('bindswitcher',getSbItem(2))">Bind Switcher →</button>
+        <button class="btn btn-ghost" onclick="sw('export',getSbItem(6))">Export CFG →</button>
       </div>
-    </aside>
+    </div>
 
-    <!-- MAIN -->
-    <main class="main-panel">
+    <!-- BUY BINDS -->
+    <div class="panel" id="panel-buybinds">
+      <div class="p-title">🛡️ Buy Bind Builder</div>
+      <div class="p-sub">Select weapons/gear, assign a key, generate the buy bind command.</div>
 
-      <!-- ===== BIND GENERATOR ===== -->
-      <div class="panel active" id="panel-binds">
-        <div class="panel-title">⌨️ Bind Generator</div>
-        <div class="panel-sub">Create key bindings visually and export them to your CS2 config.</div>
-
-        <div class="keyboard-hint">
-          Press <kbd>Add Bind</kbd> below or type your key and command manually.
-        </div>
-
-        <div class="bind-form">
-          <div>
-            <label for="bind-key-input">Key</label>
-            <input type="text" id="bind-key-input" placeholder="e.g. F1, MOUSE4, KP_5" maxlength="20" />
+      <div class="card">
+        <div class="row" style="margin-bottom:.7rem">
+          <div class="col" style="max-width:140px">
+            <label>Key</label>
+            <input type="text" id="bb-key" placeholder="F1, KP_1, MOUSE4…" maxlength="20" />
           </div>
-          <div>
-            <label for="bind-cmd-input">Command</label>
-            <input type="text" id="bind-cmd-input" placeholder='e.g. buy ak47; buy m4a1 or "toggle cl_righthand 0 1"' />
+          <div style="align-self:end">
+            <button class="btn btn-primary" onclick="addBuyBind()">＋ Add Buy Bind</button>
           </div>
-          <button class="btn btn-primary" onclick="addBind()">＋ Add Bind</button>
+          <div style="align-self:end">
+            <button class="btn btn-ghost" onclick="clearBBSelection()">Clear selection</button>
+          </div>
         </div>
 
-        <!-- Quick presets -->
-        <div style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:0.4rem;">
-          <span style="font-size:0.78rem;color:var(--muted);align-self:center">Presets:</span>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('F1','buy ak47; buy m4a4')">AK/M4 Buy</button>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('F2','buy vesthelm; buy vest; buy flashbang; buy smokegrenade; buy molotov; buy incgrenade; buy defuser')">Full Equip</button>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('MOUSE4','toggle cl_righthand 0 1')">Switch Hand</button>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('KP_MINUS','toggle voice_enable 0 1')">Mute Voice</button>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('F3','noclip')">Noclip</button>
-        </div>
-
-        <div class="bind-list" id="bind-list">
-          <div class="bind-empty">No binds yet. Add your first bind above.</div>
-        </div>
-
-        <div style="margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:0.82rem;color:var(--muted);">CFG Preview</span>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="copyBindsCfg()">📋 Copy</button>
-        </div>
-        <div class="cfg-preview" id="binds-preview">// No binds yet</div>
+        <div class="weap-section-title">Primary Weapons</div>
+        <div class="weapon-grid" id="wg-primary"></div>
+        <div class="weap-section-title">Secondary / Pistols</div>
+        <div class="weapon-grid" id="wg-secondary"></div>
+        <div class="weap-section-title">Grenades &amp; Gear</div>
+        <div class="weapon-grid" id="wg-grenades"></div>
+        <div class="weap-section-title">Armor &amp; Utility</div>
+        <div class="weapon-grid" id="wg-armor"></div>
       </div>
 
-      <!-- ===== SETTINGS EDITOR ===== -->
-      <div class="panel" id="panel-settings">
-        <div class="panel-title">🔧 Settings Editor</div>
-        <div class="panel-sub">Browse CS2 console variables, tweak values, and include them in your export.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+        <span style="font-size:.78rem;color:var(--muted)">Generated command preview</span>
+      </div>
+      <div class="cfg-preview" id="bb-cmd-preview">// Select weapons above and assign a key</div>
 
-        <div class="settings-search">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="settings-search" placeholder="Search convar… e.g. sensitivity, fps, voice" oninput="filterSettings()" />
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+        <span style="font-size:.78rem;color:var(--muted)">Buy Binds list</span>
+        <button class="btn btn-ghost" style="font-size:.74rem;padding:.25rem .5rem" onclick="copyBuyBinds()">📋 Copy all</button>
+      </div>
+      <div class="buy-bind-list" id="bb-list"><div style="color:var(--muted);font-style:italic;font-size:.82rem;padding:.5rem">No buy binds yet.</div></div>
+    </div>
+
+    <!-- BIND SWITCHER -->
+    <div class="panel" id="panel-bindswitcher">
+      <div class="p-title">⌨️ Bind Switcher</div>
+      <div class="p-sub">Create Simple, Toggle, Hold, and CFG-Exec binds — just like the Python app.</div>
+
+      <div class="bs-type-tabs">
+        <button class="bs-tab active" onclick="bsTab('simple',this)">Simple</button>
+        <button class="bs-tab" onclick="bsTab('toggle',this)">Toggle</button>
+        <button class="bs-tab" onclick="bsTab('hold',this)">Hold</button>
+        <button class="bs-tab" onclick="bsTab('cfgexec',this)">CFG Exec</button>
+      </div>
+
+      <!-- Simple -->
+      <div class="bs-form" id="bsf-simple">
+        <div class="row">
+          <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-s-key" placeholder="F1" maxlength="20" /></div>
+          <div class="col"><label>Command</label><input type="text" id="bs-s-cmd" placeholder="noclip" /></div>
+          <div class="col" style="max-width:200px"><label>Description (optional)</label><input type="text" id="bs-s-desc" placeholder="My bind…" /></div>
         </div>
-
-        <div style="overflow-x:auto;">
-          <table class="settings-table">
-            <thead>
-              <tr>
-                <th>ConVar</th>
-                <th>Category</th>
-                <th>Default</th>
-                <th>Range</th>
-                <th>Your Value</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody id="settings-tbody"></tbody>
-          </table>
+        <div style="margin-top:.65rem">
+          <button class="btn btn-primary" onclick="addSimpleBind()">＋ Add Simple Bind</button>
         </div>
       </div>
 
-      <!-- ===== EXPORT ===== -->
-      <div class="panel" id="panel-export">
-        <div class="panel-title">💾 Export CFG</div>
-        <div class="panel-sub">Generate your final <code style="background:var(--ctp-surface0);color:var(--ctp-peach);padding:0.1rem 0.4rem;border-radius:4px">.cfg</code> file and save it directly to your CS2 folder.</div>
-
-        <div class="export-info">
-          <p>Your config will be written to:</p>
-          <div class="export-path" id="export-path-display">📁 No folder selected — pick your CS2 cfg folder in the sidebar first.</div>
-          <p>The generated file will be named <code style="color:var(--ctp-peach)">autoexec.cfg</code>. CS2 loads this on startup if you add <code style="color:var(--ctp-peach)">+exec autoexec</code> to your launch options.</p>
+      <!-- Toggle -->
+      <div class="bs-form" id="bsf-toggle" style="display:none">
+        <div class="row">
+          <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-t-key" placeholder="F2" maxlength="20" /></div>
+          <div class="col" style="max-width:200px"><label>Alias name</label><input type="text" id="bs-t-alias" placeholder="my_toggle" /></div>
+          <div class="col"><label>Description (optional)</label><input type="text" id="bs-t-desc" placeholder="…" /></div>
         </div>
-
-        <div class="alert alert-info" id="api-support-note">
-          ℹ️ <strong>File System Access API</strong> — your browser supports direct file writing. Select your CS2 <code>cfg</code> folder in the sidebar to enable saving.
+        <div class="row" style="margin-top:.6rem">
+          <div class="col"><label>State A commands</label><input type="text" id="bs-t-a" placeholder="cl_righthand 1" /></div>
+          <div class="col"><label>State B commands</label><input type="text" id="bs-t-b" placeholder="cl_righthand 0" /></div>
         </div>
-
-        <div style="margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:0.82rem;color:var(--muted);">Full CFG Preview</span>
-          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="copyCfg()">📋 Copy All</button>
+        <div style="margin-top:.65rem">
+          <button class="btn btn-primary" onclick="addToggleBind()">＋ Add Toggle Bind</button>
         </div>
-        <div class="cfg-preview" id="full-cfg-preview">// Generated CFG will appear here</div>
-
-        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.75rem;">
-          <button class="btn btn-primary" onclick="saveCfg()">💾 Save to CS2 Folder</button>
-          <button class="btn btn-ghost" onclick="downloadCfg()">⬇️ Download autoexec.cfg</button>
-        </div>
-        <div id="save-status" style="margin-top:0.75rem;"></div>
       </div>
 
-      <!-- ===== ABOUT ===== -->
-      <div class="panel" id="panel-about">
-        <div class="panel-title">ℹ️ About this Demo</div>
-        <div class="panel-sub">CS2 CFG Configurator — Web Edition</div>
-
-        <div class="export-info">
-          <p>This is the <strong>browser-only demo</strong> of the CS2 CFG Configurator project. It uses the <strong>File System Access API</strong> to let you pick your CS2 <code style="color:var(--ctp-peach)">cfg</code> folder and write files directly — no server, no upload.</p>
-
-          <p style="margin-top:0.75rem;"><strong>What works in this web demo:</strong></p>
-          <ul style="margin:0.5rem 0 0.75rem 1.25rem;color:var(--muted);font-size:0.88rem;line-height:1.8;">
-            <li>✅ Bind Generator (visual, with presets)</li>
-            <li>✅ Settings Editor (browse &amp; tweak ConVars)</li>
-            <li>✅ CFG Export → download or save directly to folder</li>
-            <li>✅ Works 100% offline once loaded</li>
-          </ul>
-
-          <p style="margin-top:0.5rem;"><strong>What requires the Python app:</strong></p>
-          <ul style="margin:0.5rem 0 0.75rem 1.25rem;color:var(--muted);font-size:0.88rem;line-height:1.8;">
-            <li>🔒 Auto-detecting your Steam/CS2 installation path</li>
-            <li>🔒 Reading existing <code>.cfg</code> files to import settings</li>
-            <li>🔒 Profile management across sessions</li>
-          </ul>
-
-          <p style="margin-top:0.5rem;"><strong>Browser compatibility:</strong> Chrome 86+, Edge 86+. Firefox and Safari do not support File System Access API — use the download button instead.</p>
+      <!-- Hold -->
+      <div class="bs-form" id="bsf-hold" style="display:none">
+        <div class="row">
+          <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-h-key" placeholder="MOUSE4" maxlength="20" /></div>
+          <div class="col" style="max-width:200px"><label>Alias name</label><input type="text" id="bs-h-alias" placeholder="my_hold" /></div>
+          <div class="col"><label>Description (optional)</label><input type="text" id="bs-h-desc" placeholder="…" /></div>
         </div>
-
-        <a href="https://github.com/vsvito420/cs2-cfg-configurator" class="btn btn-primary" style="margin-top:0.5rem">⭐ Star on GitHub</a>
+        <div class="row" style="margin-top:.6rem">
+          <div class="col"><label>On Press commands</label><input type="text" id="bs-h-press" placeholder="+zoom" /></div>
+          <div class="col"><label>On Release commands</label><input type="text" id="bs-h-release" placeholder="-zoom" /></div>
+          <div class="col"><label>Before (default state, optional)</label><input type="text" id="bs-h-before" placeholder="…" /></div>
+        </div>
+        <div style="margin-top:.65rem">
+          <button class="btn btn-primary" onclick="addHoldBind()">＋ Add Hold Bind</button>
+        </div>
       </div>
 
-    </main>
-  </div>
+      <!-- CFG Exec -->
+      <div class="bs-form" id="bsf-cfgexec" style="display:none">
+        <div class="row">
+          <div class="col" style="max-width:130px"><label>Key</label><input type="text" id="bs-c-key" placeholder="F3" maxlength="20" /></div>
+          <div class="col" style="max-width:140px">
+            <label>Exec type</label>
+            <select id="bs-c-type" onchange="cfgExecTypeChange()">
+              <option value="simple">Simple exec</option>
+              <option value="toggle">Toggle (A/B)</option>
+              <option value="hold">Hold (press/release)</option>
+            </select>
+          </div>
+          <div class="col"><label>Description (optional)</label><input type="text" id="bs-c-desc" placeholder="…" /></div>
+        </div>
+        <div class="row" style="margin-top:.6rem" id="cfg-simple-row">
+          <div class="col"><label>CFG file</label><input type="text" id="bs-c-file" placeholder="practice.cfg" /></div>
+        </div>
+        <div id="cfg-toggle-row" style="display:none">
+          <div class="row" style="margin-top:.6rem">
+            <div class="col"><label>CFG A</label><input type="text" id="bs-c-fa" placeholder="state_a.cfg" /></div>
+            <div class="col"><label>CFG B</label><input type="text" id="bs-c-fb" placeholder="state_b.cfg" /></div>
+          </div>
+        </div>
+        <div id="cfg-hold-row" style="display:none">
+          <div class="row" style="margin-top:.6rem">
+            <div class="col"><label>CFG on Press</label><input type="text" id="bs-c-fp" placeholder="press.cfg" /></div>
+            <div class="col"><label>CFG on Release</label><input type="text" id="bs-c-fr" placeholder="release.cfg" /></div>
+          </div>
+        </div>
+        <div style="margin-top:.65rem">
+          <button class="btn btn-primary" onclick="addCfgBind()">＋ Add CFG Bind</button>
+        </div>
+      </div>
 
-  <div class="statusbar">
-    <span id="statusbar-folder">📁 No folder</span>
-    <span>|</span>
-    <span id="statusbar-binds">0 binds</span>
-    <span>|</span>
-    <span id="statusbar-settings">0 settings changed</span>
-    <span>|</span>
-    <span>CS2 CFG Configurator – Web Demo</span>
-  </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+        <span style="font-size:.78rem;color:var(--muted)">Bind list</span>
+        <button class="btn btn-ghost" style="font-size:.74rem;padding:.25rem .5rem" onclick="copySwitchBinds()">📋 Copy CFG</button>
+      </div>
+      <div class="bs-list" id="bs-list"><div style="color:var(--muted);font-style:italic;font-size:.82rem;padding:.5rem">No binds yet.</div></div>
+      <div class="cfg-preview" id="bs-preview">// No binds yet</div>
+    </div>
+
+    <!-- SETTINGS EDITOR -->
+    <div class="panel" id="panel-settings">
+      <div class="p-title">🔧 Settings Editor</div>
+      <div class="p-sub">Browse CS2 ConVars, set custom values. Changed values are included in Export.</div>
+      <div class="cmd-search">
+        <span class="cmd-si">🔍</span>
+        <input type="text" id="set-search" placeholder="Search convar, category, description…" oninput="filterSettings()" />
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>ConVar</th><th>Cat</th><th>Default</th><th>Range</th><th>Your Value</th><th>Description</th></tr></thead>
+          <tbody id="set-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CFG EDITOR -->
+    <div class="panel" id="panel-cfgeditor">
+      <div class="p-title">📝 CFG Editor</div>
+      <div class="p-sub">Read existing CFG files from your selected folder, or write raw commands directly.</div>
+
+      <div class="row" style="margin-bottom:.8rem">
+        <button class="btn btn-ghost" onclick="readCfgFile()">&#128194; Open CFG from folder…</button>
+        <button class="btn btn-ghost" onclick="newCfg()">&#10133; New empty</button>
+        <button class="btn btn-ghost" onclick="saveCfgFile()">&#128190; Save to folder</button>
+        <button class="btn btn-ghost" onclick="downloadCfgFile()">&#11015; Download</button>
+      </div>
+
+      <div class="alert alert-info" id="cfg-editor-note">
+        ℹ️ Select your CS2 folder in the sidebar to open/save files directly.
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
+        <span style="font-size:.78rem;color:var(--muted)" id="cfg-filename-label">Unsaved</span>
+        <span style="font-size:.74rem;color:var(--muted)" id="cfg-linecount">0 lines</span>
+      </div>
+      <textarea id="cfg-editor-area" rows="20" placeholder="// Write CS2 commands here…
+// Example:
+sensitivity 1.8
+bind F1 &quot;buy ak47&quot;
+echo &quot;loaded&quot;"
+      oninput="onCfgEdit()"></textarea>
+    </div>
+
+    <!-- COMMAND VIEWER -->
+    <div class="panel" id="panel-cmdviewer">
+      <div class="p-title">🔍 Command Viewer</div>
+      <div class="p-sub">Browse common CS2 commands and ConVars as a reference.</div>
+      <div class="cmd-search">
+        <span class="cmd-si">🔍</span>
+        <input type="text" id="cmd-search" placeholder="Search commands…" oninput="filterCmds()" />
+      </div>
+      <div class="cmd-grid" id="cmd-grid"></div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="panel" id="panel-export">
+      <div class="p-title">💾 Export CFG</div>
+      <div class="p-sub">Combine all your settings, buy binds and switch binds into one <span class="tag">autoexec.cfg</span>.</div>
+
+      <div class="card">
+        <p style="font-size:.84rem;color:var(--muted);margin-bottom:.6rem">Output path:</p>
+        <div class="exp-path" id="exp-path">📁 No folder selected — use the sidebar to pick your CS2 cfg folder.</div>
+        <p style="font-size:.82rem;color:var(--muted)">Add <span class="tag">+exec autoexec</span> to CS2 Steam launch options.</p>
+      </div>
+
+      <div class="alert alert-info" id="exp-api-note">ℹ️ Select your CS2 cfg folder in the sidebar to enable direct saving (Chrome/Edge).</div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+        <span style="font-size:.78rem;color:var(--muted)">Full autoexec.cfg preview</span>
+        <button class="btn btn-ghost" style="font-size:.74rem;padding:.25rem .5rem" onclick="copyFull()">📋 Copy</button>
+      </div>
+      <div class="cfg-preview" id="exp-preview">// click &quot;Refresh Preview&quot; or switch to this tab</div>
+
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.7rem">
+        <button class="btn btn-primary" onclick="saveAutoexec()">💾 Save autoexec.cfg to CS2 folder</button>
+        <button class="btn btn-ghost" onclick="downloadAutoexec()">⬇️ Download autoexec.cfg</button>
+        <button class="btn btn-ghost" onclick="refreshExport()">&#8635; Refresh preview</button>
+      </div>
+      <div id="exp-status" style="margin-top:.7rem"></div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="panel" id="panel-about">
+      <div class="p-title">ℹ️ About – Web Edition</div>
+      <div class="p-sub">CS2 CFG Configurator — ported from Windows Python app to web with AI.</div>
+      <div class="card">
+        <p style="font-size:.86rem;color:var(--muted);line-height:1.7;margin-bottom:.8rem">
+          The original project was a <strong style="color:var(--text)">Windows-only Python/CustomTkinter desktop app</strong>. I rewrote it as a fully browser-based web app using AI — every module is ported 1:1 so you get the exact same workflow without installing Python.
+        </p>
+        <p style="font-size:.84rem;color:var(--muted);line-height:1.7;margin-bottom:.6rem"><strong style="color:var(--ctp-green)">What works in the web version:</strong></p>
+        <ul style="margin:0 0 .8rem 1.1rem;color:var(--muted);font-size:.82rem;line-height:1.9">
+          <li>✅ Dashboard with live stats</li>
+          <li>✅ Buy Bind Builder (all weapons, grenades, armor)</li>
+          <li>✅ Bind Switcher: Simple / Toggle / Hold / CFG-Exec</li>
+          <li>✅ Settings Editor with search (38+ ConVars)</li>
+          <li>✅ CFG Editor: read &amp; write .cfg files directly via File System Access API</li>
+          <li>✅ Command Viewer reference</li>
+          <li>✅ Export: generate &amp; save autoexec.cfg</li>
+          <li>✅ LocalStorage persistence (survives page reload)</li>
+        </ul>
+        <p style="font-size:.84rem;color:var(--muted);line-height:1.7;margin-bottom:.6rem"><strong style="color:var(--ctp-red)">Only in the Python app:</strong></p>
+        <ul style="margin:0 0 .8rem 1.1rem;color:var(--muted);font-size:.82rem;line-height:1.9">
+          <li>🔒 Auto-detection of Steam/CS2 installation path</li>
+          <li>🔒 Multi-profile management saved on disk</li>
+        </ul>
+        <p style="font-size:.8rem;color:var(--muted)"><strong>File System Access API</strong> (direct folder write) requires <strong>Chrome 86+</strong> or <strong>Edge 86+</strong>. Firefox/Safari: use the Download button.</p>
+      </div>
+      <a href="https://github.com/vsvito420/cs2-cfg-configurator" class="btn btn-primary" style="margin-top:.5rem">⭐ Star on GitHub</a>
+    </div>
+
+  </main>
+</div>
+
+<div class="statusbar">
+  <span id="sb-folder">📁 No folder</span>
+  <span>|</span><span id="sb-bb">0 buy binds</span>
+  <span>|</span><span id="sb-sw">0 switch binds</span>
+  <span>|</span><span id="sb-set">0 settings</span>
+  <span>|</span><span>CS2 CFG Configurator – Web Edition</span>
+</div>
 
 <script>
-// =====================================================================
-// DATA — CS2 ConVars (subset, expandable)
-// =====================================================================
-const CONVARS = [
-  { name: 'sensitivity',        cat: 'Mouse',    def: '2.5',   range: '0.1 – 10',    desc: 'Mouse sensitivity' },
-  { name: 'zoom_sensitivity_ratio_mouse', cat: 'Mouse', def: '1.0', range: '0.1 – 5', desc: 'Scoped sensitivity ratio' },
-  { name: 'm_rawinput',         cat: 'Mouse',    def: '1',     range: '0 / 1',       desc: 'Use raw mouse input' },
-  { name: 'm_mouseaccel1',      cat: 'Mouse',    def: '0',     range: '0 – 5',       desc: 'Mouse acceleration (lower threshold)' },
-  { name: 'm_mouseaccel2',      cat: 'Mouse',    def: '0',     range: '0 – 5',       desc: 'Mouse acceleration (upper threshold)' },
-  { name: 'fps_max',            cat: 'Video',    def: '400',   range: '0 – 999',     desc: 'Max frames per second (0 = unlimited)' },
-  { name: 'fps_max_ui',         cat: 'Video',    def: '60',    range: '0 – 999',     desc: 'Max FPS in menus' },
-  { name: 'r_dynamic',          cat: 'Video',    def: '0',     range: '0 / 1',       desc: 'Dynamic lighting' },
-  { name: 'mat_queue_mode',     cat: 'Video',    def: '-1',    range: '-1 / 0 / 2',  desc: 'Multicore rendering mode' },
-  { name: 'cl_showfps',         cat: 'HUD',      def: '0',     range: '0 – 5',       desc: 'Show FPS counter' },
-  { name: 'net_graph',          cat: 'HUD',      def: '0',     range: '0 / 1',       desc: 'Show net graph' },
-  { name: 'hud_scaling',        cat: 'HUD',      def: '0.85',  range: '0.5 – 0.95',  desc: 'HUD element scale' },
-  { name: 'cl_hud_color',       cat: 'HUD',      def: '0',     range: '0 – 10',      desc: 'HUD color preset' },
-  { name: 'cl_radar_scale',     cat: 'Radar',    def: '0.7',   range: '0.25 – 1',    desc: 'Radar map scale' },
-  { name: 'cl_radar_always_centered', cat: 'Radar', def: '0', range: '0 / 1',       desc: 'Keep player centered on radar' },
-  { name: 'cl_righthand',       cat: 'View',     def: '1',     range: '0 / 1',       desc: 'Weapon hand (1=right, 0=left)' },
-  { name: 'viewmodel_fov',      cat: 'View',     def: '68',    range: '54 – 68',     desc: 'Viewmodel field of view' },
-  { name: 'viewmodel_offset_x', cat: 'View',     def: '0',     range: '-2 – 2.5',   desc: 'Viewmodel X offset' },
-  { name: 'viewmodel_offset_y', cat: 'View',     def: '0',     range: '-2 – 2',      desc: 'Viewmodel Y offset' },
-  { name: 'viewmodel_offset_z', cat: 'View',     def: '-2',    range: '-2 – 2',      desc: 'Viewmodel Z offset' },
-  { name: 'cl_bob_lower_amt',   cat: 'View',     def: '21',    range: '5 – 30',      desc: 'Weapon bob lower amount' },
-  { name: 'cl_bobamt_lat',      cat: 'View',     def: '0.4',   range: '0.1 – 2',     desc: 'Weapon lateral bob' },
-  { name: 'cl_bobamt_vert',     cat: 'View',     def: '0.25',  range: '0.1 – 2',     desc: 'Weapon vertical bob' },
-  { name: 'cl_bobcycle',        cat: 'View',     def: '0.98',  range: '0.1 – 2',     desc: 'Weapon bob cycle speed' },
-  { name: 'voice_enable',       cat: 'Audio',    def: '1',     range: '0 / 1',       desc: 'Enable voice chat' },
-  { name: 'voice_scale',        cat: 'Audio',    def: '1.0',   range: '0 – 1',       desc: 'Voice chat volume' },
-  { name: 'volume',             cat: 'Audio',    def: '0.5',   range: '0 – 1',       desc: 'Master volume' },
-  { name: 'snd_musicvolume',    cat: 'Audio',    def: '0.1',   range: '0 – 1',       desc: 'Music volume' },
-  { name: 'cl_mute_enemy_team', cat: 'Audio',    def: '0',     range: '0 / 1',       desc: 'Mute enemy team voice' },
-  { name: 'cl_interp_ratio',    cat: 'Network',  def: '2',     range: '0 – 2',       desc: 'Interpolation ratio' },
-  { name: 'cl_interp',          cat: 'Network',  def: '0.015625', range: '0 – 0.5',  desc: 'Interpolation time (s)' },
-  { name: 'rate',               cat: 'Network',  def: '786432', range: '1 – 1048576', desc: 'Network data rate (bytes/s)' },
-  { name: 'cl_updaterate',      cat: 'Network',  def: '128',   range: '10 – 128',    desc: 'Server update rate' },
-  { name: 'cl_cmdrate',         cat: 'Network',  def: '128',   range: '10 – 128',    desc: 'Client command rate' },
-  { name: 'cl_autohelp',        cat: 'Misc',     def: '0',     range: '0 / 1',       desc: 'Auto help tips' },
-  { name: 'gameinstructor_enable', cat: 'Misc',  def: '0',     range: '0 / 1',       desc: 'In-game instructor lessons' },
-  { name: 'cl_autowepswitch',   cat: 'Misc',     def: '0',     range: '0 / 1',       desc: 'Auto switch to new weapon' },
-  { name: 'cl_teamid_overhead_always', cat: 'Misc', def: '1', range: '0 – 2',       desc: 'Always show teammate IDs overhead' },
+// =============================================================
+// DATA
+// =============================================================
+const PRIMARY=[
+  ['AK-47','buy ak47'],['M4A4','buy m4a1'],['M4A1-S','buy m4a1_silencer'],
+  ['AWP','buy awp'],['SG 553','buy sg556'],['AUG','buy aug'],
+  ['FAMAS','buy famas'],['Galil AR','buy galilar'],['SSG 08','buy ssg08'],
+  ['G3SG1','buy g3sg1'],['SCAR-20','buy scar20'],['M249','buy m249'],
+  ['Negev','buy negev'],['MAC-10','buy mac10'],['MP9','buy mp9'],
+  ['MP5-SD','buy mp5sd'],['MP7','buy mp7'],['UMP-45','buy ump45'],
+  ['P90','buy p90'],['PP-Bizon','buy bizon'],['Nova','buy nova'],
+  ['XM1014','buy xm1014'],['Sawed-Off','buy sawedoff'],['MAG-7','buy mag7'],
+];
+const SECONDARY=[
+  ['Glock-18','buy glock'],['USP-S','buy usp_silencer'],['P2000','buy hkp2000'],
+  ['P250','buy p250'],['Five-SeveN','buy fiveseven'],['Tec-9','buy tec9'],
+  ['CZ75-Auto','buy cz75a'],['Desert Eagle','buy deagle'],
+  ['R8 Revolver','buy revolver'],['Dual Berettas','buy elite'],
+];
+const GRENADES=[
+  ['Flashbang','buy flashbang'],['Smoke','buy smokegrenade'],
+  ['Molotov (T)','buy molotov'],['Incendiary (CT)','buy incgrenade'],
+  ['HE Grenade','buy hegrenade'],['Decoy','buy decoy'],
+];
+const ARMOR=[
+  ['Vest + Helmet','buy vesthelm'],['Vest only','buy vest'],
+  ['Defuse Kit','buy defuser'],['Zeus (Taser)','buy taser'],
 ];
 
-// =====================================================================
+const CONVARS=[
+  {n:'sensitivity',c:'Mouse',d:'2.5',r:'0.1–10',t:'Mouse sensitivity'},
+  {n:'zoom_sensitivity_ratio_mouse',c:'Mouse',d:'1.0',r:'0.1–5',t:'Scoped sensitivity ratio'},
+  {n:'m_rawinput',c:'Mouse',d:'1',r:'0/1',t:'Raw mouse input'},
+  {n:'m_mouseaccel1',c:'Mouse',d:'0',r:'0–5',t:'Mouse accel (lower)'},
+  {n:'m_mouseaccel2',c:'Mouse',d:'0',r:'0–5',t:'Mouse accel (upper)'},
+  {n:'fps_max',c:'Video',d:'400',r:'0–999',t:'Max FPS (0=unlimited)'},
+  {n:'fps_max_ui',c:'Video',d:'60',r:'0–999',t:'Max FPS in menus'},
+  {n:'r_dynamic',c:'Video',d:'0',r:'0/1',t:'Dynamic lighting'},
+  {n:'mat_queue_mode',c:'Video',d:'-1',r:'-1/0/2',t:'Multicore rendering'},
+  {n:'cl_showfps',c:'HUD',d:'0',r:'0–5',t:'Show FPS counter'},
+  {n:'net_graph',c:'HUD',d:'0',r:'0/1',t:'Network graph overlay'},
+  {n:'hud_scaling',c:'HUD',d:'0.85',r:'0.5–0.95',t:'HUD scale'},
+  {n:'cl_hud_color',c:'HUD',d:'0',r:'0–10',t:'HUD color preset'},
+  {n:'cl_radar_scale',c:'Radar',d:'0.7',r:'0.25–1',t:'Radar map scale'},
+  {n:'cl_radar_always_centered',c:'Radar',d:'0',r:'0/1',t:'Keep centered on radar'},
+  {n:'cl_righthand',c:'View',d:'1',r:'0/1',t:'Right hand (1) / Left hand (0)'},
+  {n:'viewmodel_fov',c:'View',d:'68',r:'54–68',t:'Viewmodel FOV'},
+  {n:'viewmodel_offset_x',c:'View',d:'0',r:'-2–2.5',t:'Viewmodel X offset'},
+  {n:'viewmodel_offset_y',c:'View',d:'0',r:'-2–2',t:'Viewmodel Y offset'},
+  {n:'viewmodel_offset_z',c:'View',d:'-2',r:'-2–2',t:'Viewmodel Z offset'},
+  {n:'cl_bob_lower_amt',c:'View',d:'21',r:'5–30',t:'Weapon bob lower amount'},
+  {n:'cl_bobamt_lat',c:'View',d:'0.4',r:'0.1–2',t:'Weapon lateral bob'},
+  {n:'cl_bobamt_vert',c:'View',d:'0.25',r:'0.1–2',t:'Weapon vertical bob'},
+  {n:'cl_bobcycle',c:'View',d:'0.98',r:'0.1–2',t:'Weapon bob cycle'},
+  {n:'voice_enable',c:'Audio',d:'1',r:'0/1',t:'Voice chat enabled'},
+  {n:'voice_scale',c:'Audio',d:'1.0',r:'0–1',t:'Voice volume'},
+  {n:'volume',c:'Audio',d:'0.5',r:'0–1',t:'Master volume'},
+  {n:'snd_musicvolume',c:'Audio',d:'0.1',r:'0–1',t:'Music volume'},
+  {n:'cl_mute_enemy_team',c:'Audio',d:'0',r:'0/1',t:'Mute enemy team voice'},
+  {n:'cl_interp_ratio',c:'Network',d:'2',r:'0–2',t:'Interpolation ratio'},
+  {n:'cl_interp',c:'Network',d:'0.015625',r:'0–0.5',t:'Interpolation time (s)'},
+  {n:'rate',c:'Network',d:'786432',r:'1–1048576',t:'Network data rate (bytes/s)'},
+  {n:'cl_updaterate',c:'Network',d:'128',r:'10–128',t:'Server update rate'},
+  {n:'cl_cmdrate',c:'Network',d:'128',r:'10–128',t:'Client command rate'},
+  {n:'cl_autohelp',c:'Misc',d:'0',r:'0/1',t:'Auto help tips'},
+  {n:'gameinstructor_enable',c:'Misc',d:'0',r:'0/1',t:'In-game instructor'},
+  {n:'cl_autowepswitch',c:'Misc',d:'0',r:'0/1',t:'Auto switch to new weapon'},
+  {n:'cl_teamid_overhead_always',c:'Misc',d:'1',r:'0–2',t:'Always show teammate IDs'},
+];
+
+const COMMANDS=[
+  {n:'bind',d:'Bind a key to a command. Usage: bind KEY "command"'},
+  {n:'unbind',d:'Remove binding from a key'},
+  {n:'unbindall',d:'Remove all key bindings'},
+  {n:'alias',d:'Create a command alias. Usage: alias name "commands"'},
+  {n:'exec',d:'Execute a .cfg file. Usage: exec filename.cfg'},
+  {n:'echo',d:'Print a message to the console'},
+  {n:'toggle',d:'Toggle a ConVar between values. Usage: toggle convar val1 val2'},
+  {n:'incrementvar',d:'Cycle a ConVar through a range. Usage: incrementvar cvar min max step'},
+  {n:'buy',d:'Buy a weapon/item. Usage: buy ak47'},
+  {n:'noclip',d:'Toggle noclip mode (practice servers)'},
+  {n:'sv_cheats',d:'Enable/disable cheat commands (1/0)'},
+  {n:'give',d:'Give a weapon (sv_cheats). Usage: give weapon_ak47'},
+  {n:'bot_add',d:'Add a bot to the game'},
+  {n:'bot_kick',d:'Remove all bots'},
+  {n:'bot_stop',d:'Freeze all bots (1/0)'},
+  {n:'mp_restartgame',d:'Restart the game. Usage: mp_restartgame 1'},
+  {n:'mp_warmuptime',d:'Set warmup duration in seconds'},
+  {n:'mp_freezetime',d:'Set freeze time at round start'},
+  {n:'mp_roundtime',d:'Set round duration in minutes'},
+  {n:'mp_buy_anywhere',d:'Allow buying anywhere (1/0, sv_cheats)'},
+  {n:'mp_unlimited_ammo',d:'Unlimited ammo (1/0, sv_cheats)'},
+  {n:'cl_grenadepreview',d:'Show grenade trajectory preview (1/0)'},
+  {n:'r_drawothermodels',d:'See through walls (2=wireframe, sv_cheats)'},
+  {n:'sv_infinite_ammo',d:'Infinite ammo (sv_cheats)'},
+  {n:'cl_showpos',d:'Show position/velocity overlay (1/0)'},
+  {n:'clear',d:'Clear the developer console'},
+  {n:'quit',d:'Exit CS2'},
+  {n:'disconnect',d:'Disconnect from the current server'},
+  {n:'status',d:'Show server/player status info'},
+  {n:'net_channels',d:'Show network channel info'},
+  {n:'voice_enable',d:'Enable/disable voice chat (1/0)'},
+  {n:'voice_scale',d:'Voice chat volume (0–1)'},
+  {n:'+attack',d:'Primary fire (hold)'},
+  {n:'+attack2',d:'Secondary fire (hold)'},
+  {n:'+use',d:'Use key (hold)'},
+  {n:'+jump',d:'Jump (hold)'},
+  {n:'+duck',d:'Crouch (hold)'},
+  {n:'+sprint',d:'Walk (hold)'},
+  {n:'+lookatweapon',d:'Inspect weapon (hold)'},
+];
+
+// =============================================================
 // STATE
-// =====================================================================
-let binds = [];           // {key, cmd}
-let settingChanges = {};  // convar → value
-let dirHandle = null;     // FileSystemDirectoryHandle
+// =============================================================
+let STATE = {
+  buyBinds: [],   // {key, cmds[]}
+  switchBinds: [], // {type, key, ...}
+  settings: {},   // {cvar: val}
+  cfgText: '',
+  cfgFileName: 'autoexec.cfg',
+};
+let dirHandle = null;
+let bbSelected = new Set(); // indices into weapon arrays combined
 
-// =====================================================================
-// FOLDER PICKER (File System Access API)
-// =====================================================================
-async function pickFolder() {
-  if (!('showDirectoryPicker' in window)) {
-    alert('Your browser does not support the File System Access API.\nUse Chrome or Edge 86+.\n\nYou can still use the Download button to get your CFG.');
-    return;
+// persist
+function save(){try{localStorage.setItem('cs2cfg',JSON.stringify(STATE));}catch(e){}}
+function load(){
+  try{
+    const s=localStorage.getItem('cs2cfg');
+    if(s){const p=JSON.parse(s);Object.assign(STATE,p);}
+  }catch(e){}
+}
+
+// =============================================================
+// INIT
+// =============================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  buildWeaponGrid();
+  renderBuyBinds();
+  buildSettingsTable();
+  buildCmdViewer();
+  renderSwitchBinds();
+  updateCfgEditor();
+  updateDash();
+  if(!('showDirectoryPicker' in window)){
+    document.getElementById('exp-api-note').className='alert alert-warn';
+    document.getElementById('exp-api-note').innerHTML='⚠️ File System Access API not supported in your browser. Use the Download button.';
   }
-  try {
-    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-    document.getElementById('folder-name').textContent = '✅ ' + dirHandle.name;
-    document.getElementById('statusbar-folder').textContent = '📁 ' + dirHandle.name;
-    document.getElementById('export-path-display').textContent =
-      '📁 ' + dirHandle.name + '/autoexec.cfg';
-    document.getElementById('api-support-note').className = 'alert alert-success';
-    document.getElementById('api-support-note').innerHTML =
-      '✅ Folder selected! Click <strong>Save to CS2 Folder</strong> to write the file.';
-  } catch (e) {
-    if (e.name !== 'AbortError') console.error(e);
-  }
+});
+
+// =============================================================
+// SIDEBAR / PANEL
+// =============================================================
+function sw(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='export') refreshExport();
+  if(name==='dashboard') updateDash();
+}
+function getSbItem(i){return document.querySelectorAll('.sb-item')[i];}
+
+// =============================================================
+// FOLDER PICKER
+// =============================================================
+async function pickFolder(){
+  if(!('showDirectoryPicker' in window)){alert('Not supported in this browser. Use Chrome or Edge 86+.');return;}
+  try{
+    dirHandle=await window.showDirectoryPicker({mode:'readwrite'});
+    document.getElementById('folder-name').textContent='✅ '+dirHandle.name;
+    document.getElementById('sb-folder').textContent='📁 '+dirHandle.name;
+    document.getElementById('exp-path').textContent='📁 '+dirHandle.name+'/autoexec.cfg';
+    document.getElementById('exp-api-note').className='alert alert-ok';
+    document.getElementById('exp-api-note').innerHTML='✅ Folder selected! Click Save to write autoexec.cfg.';
+  }catch(e){if(e.name!=='AbortError')console.error(e);}
 }
 
-// =====================================================================
-// PANEL SWITCHER
-// =====================================================================
-function switchPanel(name, el) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  el.classList.add('active');
-  if (name === 'export') refreshExportPreview();
+// =============================================================
+// BUY BINDS
+// =============================================================
+const ALL_WEAPONS=[
+  ...PRIMARY.map((w,i)=>({...{label:w[0],cmd:w[1]},group:'primary',id:'p'+i})),
+  ...SECONDARY.map((w,i)=>({...{label:w[0],cmd:w[1]},group:'secondary',id:'s'+i})),
+  ...GRENADES.map((w,i)=>({...{label:w[0],cmd:w[1]},group:'grenades',id:'g'+i})),
+  ...ARMOR.map((w,i)=>({...{label:w[0],cmd:w[1]},group:'armor',id:'a'+i})),
+];
+
+function buildWeaponGrid(){
+  const groups={primary:'wg-primary',secondary:'wg-secondary',grenades:'wg-grenades',armor:'wg-armor'};
+  ALL_WEAPONS.forEach(w=>{
+    const el=document.getElementById(groups[w.group]);
+    const div=document.createElement('div');
+    div.className='weapon-chip';
+    div.id='wc-'+w.id;
+    div.innerHTML=`<input type="checkbox" id="wch-${w.id}" onchange="toggleWeapon('${w.id}')" /><label for="wch-${w.id}">${esc(w.label)}</label>`;
+    div.onclick=e=>{if(e.target.tagName!=='INPUT'){const cb=div.querySelector('input');cb.checked=!cb.checked;toggleWeapon(w.id);}};
+    el.appendChild(div);
+  });
 }
 
-// =====================================================================
-// BIND GENERATOR
-// =====================================================================
-function addBind() {
-  const key = document.getElementById('bind-key-input').value.trim().toUpperCase();
-  const cmd = document.getElementById('bind-cmd-input').value.trim();
-  if (!key || !cmd) { alert('Please enter both a key and a command.'); return; }
-  binds.push({ key, cmd });
-  document.getElementById('bind-key-input').value = '';
-  document.getElementById('bind-cmd-input').value = '';
-  renderBinds();
+function toggleWeapon(id){
+  if(bbSelected.has(id)) bbSelected.delete(id);
+  else bbSelected.add(id);
+  const chip=document.getElementById('wc-'+id);
+  if(chip) chip.classList.toggle('selected', bbSelected.has(id));
+  updateBbPreview();
 }
 
-function addPreset(key, cmd) {
-  binds.push({ key: key.toUpperCase(), cmd });
-  renderBinds();
+function clearBBSelection(){
+  bbSelected.clear();
+  ALL_WEAPONS.forEach(w=>{
+    const chip=document.getElementById('wc-'+w.id);
+    if(chip){chip.classList.remove('selected');chip.querySelector('input').checked=false;}
+  });
+  updateBbPreview();
 }
 
-function removeBind(i) {
-  binds.splice(i, 1);
-  renderBinds();
+function getBbCmd(){
+  const cmds=ALL_WEAPONS.filter(w=>bbSelected.has(w.id)).map(w=>w.cmd);
+  return cmds.join('; ');
 }
 
-function renderBinds() {
-  const list = document.getElementById('bind-list');
-  const preview = document.getElementById('binds-preview');
-  if (binds.length === 0) {
-    list.innerHTML = '<div class="bind-empty">No binds yet. Add your first bind above.</div>';
-    preview.textContent = '// No binds yet';
-  } else {
-    list.innerHTML = binds.map((b, i) =>
-      `<div class="bind-row">
-        <span class="bind-key">${escHtml(b.key)}</span>
-        <span class="bind-cmd">bind "${escHtml(b.key)}" "${escHtml(b.cmd)}"</span>
-        <button class="btn btn-danger" onclick="removeBind(${i})">✕ Remove</button>
+function updateBbPreview(){
+  const key=(document.getElementById('bb-key').value.trim().toUpperCase()||'<KEY>');
+  const cmd=getBbCmd();
+  document.getElementById('bb-cmd-preview').textContent=
+    cmd ? `bind "${key}" "${cmd}"` : '// Select weapons above and assign a key';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('bb-key').addEventListener('input',updateBbPreview);
+});
+
+function addBuyBind(){
+  const key=document.getElementById('bb-key').value.trim().toUpperCase();
+  const cmd=getBbCmd();
+  if(!key){alert('Enter a key first.');return;}
+  if(!cmd){alert('Select at least one weapon/item.');return;}
+  STATE.buyBinds.push({key,cmd});
+  save();
+  clearBBSelection();
+  document.getElementById('bb-key').value='';
+  renderBuyBinds();
+  updateDash();
+  showToast('Buy bind added!');
+}
+
+function renderBuyBinds(){
+  const el=document.getElementById('bb-list');
+  if(!STATE.buyBinds.length){el.innerHTML='<div style="color:var(--muted);font-style:italic;font-size:.82rem;padding:.5rem">No buy binds yet.</div>';}
+  else{
+    el.innerHTML=STATE.buyBinds.map((b,i)=>
+      `<div class="buy-bind-row">
+        <span class="bkey">${esc(b.key)}</span>
+        <span class="bcmd">bind "${esc(b.key)}" "${esc(b.cmd)}"</span>
+        <button class="btn btn-danger" onclick="removeBuyBind(${i})">✕</button>
       </div>`
     ).join('');
-    preview.textContent = binds.map(b => `bind "${b.key}" "${b.cmd}"`).join('\n');
   }
-  document.getElementById('statusbar-binds').textContent = binds.length + ' bind' + (binds.length !== 1 ? 's' : '');
+  document.getElementById('sb-bb').textContent=STATE.buyBinds.length+' buy bind'+(STATE.buyBinds.length!==1?'s':'');
 }
 
-function copyBindsCfg() {
-  const text = binds.map(b => `bind "${b.key}" "${b.cmd}"`).join('\n');
-  navigator.clipboard.writeText(text).then(() => showToast('Binds copied!'));
+function removeBuyBind(i){STATE.buyBinds.splice(i,1);save();renderBuyBinds();updateDash();}
+
+function copyBuyBinds(){
+  const t=STATE.buyBinds.map(b=>`bind "${b.key}" "${b.cmd}"`).join('\n');
+  navigator.clipboard.writeText(t).then(()=>showToast('Copied!'));
 }
 
-// =====================================================================
-// SETTINGS EDITOR
-// =====================================================================
-function buildSettingsTable(filter = '') {
-  const q = filter.toLowerCase();
-  const rows = CONVARS.filter(c =>
-    !q || c.name.includes(q) || c.cat.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
-  );
-  const tbody = document.getElementById('settings-tbody');
-  tbody.innerHTML = rows.map(c => `
-    <tr>
-      <td class="cvar-name">${escHtml(c.name)}</td>
-      <td style="color:var(--muted);font-size:0.8rem">${escHtml(c.cat)}</td>
-      <td class="cvar-default">${escHtml(c.def)}</td>
-      <td class="cvar-range">${escHtml(c.range)}</td>
-      <td>
-        <input type="text" placeholder="${escHtml(c.def)}"
-          value="${escHtml(settingChanges[c.name] ?? '')}"
-          oninput="setSetting('${escHtml(c.name)}', this.value)"
-          style="width:100px" />
-      </td>
-      <td style="color:var(--muted);font-size:0.8rem">${escHtml(c.desc)}</td>
-    </tr>
-  `).join('');
+// =============================================================
+// BIND SWITCHER
+// =============================================================
+let bsCurrentType='simple';
+
+function bsTab(type,el){
+  bsCurrentType=type;
+  document.querySelectorAll('.bs-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['simple','toggle','hold','cfgexec'].forEach(t=>{
+    document.getElementById('bsf-'+t).style.display=(t===type?'block':'none');
+  });
 }
 
-function filterSettings() {
-  buildSettingsTable(document.getElementById('settings-search').value);
+function cfgExecTypeChange(){
+  const v=document.getElementById('bs-c-type').value;
+  document.getElementById('cfg-simple-row').style.display=(v==='simple'?'flex':'none');
+  document.getElementById('cfg-toggle-row').style.display=(v==='toggle'?'block':'none');
+  document.getElementById('cfg-hold-row').style.display=(v==='hold'?'block':'none');
 }
 
-function setSetting(name, val) {
-  if (val.trim() === '') {
-    delete settingChanges[name];
+function addSimpleBind(){
+  const key=document.getElementById('bs-s-key').value.trim().toUpperCase();
+  const cmd=document.getElementById('bs-s-cmd').value.trim();
+  const desc=document.getElementById('bs-s-desc').value.trim();
+  if(!key||!cmd){alert('Key and Command required.');return;}
+  STATE.switchBinds.push({type:'simple',key,cmd,desc});
+  save();renderSwitchBinds();updateDash();showToast('Simple bind added!');
+  document.getElementById('bs-s-key').value='';
+  document.getElementById('bs-s-cmd').value='';
+  document.getElementById('bs-s-desc').value='';
+}
+
+function addToggleBind(){
+  const key=document.getElementById('bs-t-key').value.trim().toUpperCase();
+  const alias=document.getElementById('bs-t-alias').value.trim().replace(/[^a-zA-Z0-9_]/g,'_');
+  const a=document.getElementById('bs-t-a').value.trim();
+  const b=document.getElementById('bs-t-b').value.trim();
+  const desc=document.getElementById('bs-t-desc').value.trim();
+  if(!key||!alias||!a||!b){alert('Key, Alias, State A and State B required.');return;}
+  STATE.switchBinds.push({type:'toggle',key,alias,stateA:a,stateB:b,desc});
+  save();renderSwitchBinds();updateDash();showToast('Toggle bind added!');
+}
+
+function addHoldBind(){
+  const key=document.getElementById('bs-h-key').value.trim().toUpperCase();
+  const alias=document.getElementById('bs-h-alias').value.trim().replace(/[^a-zA-Z0-9_]/g,'_');
+  const press=document.getElementById('bs-h-press').value.trim();
+  const release=document.getElementById('bs-h-release').value.trim();
+  const before=document.getElementById('bs-h-before').value.trim();
+  const desc=document.getElementById('bs-h-desc').value.trim();
+  if(!key||!alias){alert('Key and Alias required.');return;}
+  STATE.switchBinds.push({type:'hold',key,alias,press,release,before,desc});
+  save();renderSwitchBinds();updateDash();showToast('Hold bind added!');
+}
+
+function addCfgBind(){
+  const key=document.getElementById('bs-c-key').value.trim().toUpperCase();
+  const execType=document.getElementById('bs-c-type').value;
+  const desc=document.getElementById('bs-c-desc').value.trim();
+  const file=document.getElementById('bs-c-file').value.trim();
+  const fa=document.getElementById('bs-c-fa').value.trim();
+  const fb=document.getElementById('bs-c-fb').value.trim();
+  const fp=document.getElementById('bs-c-fp').value.trim();
+  const fr=document.getElementById('bs-c-fr').value.trim();
+  if(!key){alert('Key required.');return;}
+  STATE.switchBinds.push({type:'cfgexec',key,execType,desc,file,fa,fb,fp,fr});
+  save();renderSwitchBinds();updateDash();showToast('CFG bind added!');
+}
+
+function genSwitchCfg(){
+  return STATE.switchBinds.map(b=>{
+    if(b.type==='simple'){
+      return (b.desc?`// ${b.desc}\n`:'')+`bind "${b.key}" "${b.cmd}"`;
+    }
+    if(b.type==='toggle'){
+      const n=b.alias;
+      const lines=[];
+      if(b.desc) lines.push(`// ${b.desc}`);
+      lines.push(`alias "${n}_a" "${b.stateA}; alias ${n} ${n}_b"`);
+      lines.push(`alias "${n}_b" "${b.stateB}; alias ${n} ${n}_a"`);
+      lines.push(`alias "${n}" "${n}_a"`);
+      lines.push(`bind "${b.key}" "${n}"`);
+      return lines.join('\n');
+    }
+    if(b.type==='hold'){
+      const n=b.alias;
+      const lines=[];
+      if(b.desc) lines.push(`// ${b.desc}`);
+      if(b.before) lines.push(b.before);
+      if(b.press) lines.push(`alias "+${n}" "${b.press}"`);
+      if(b.release) lines.push(`alias "-${n}" "${b.release}"`);
+      lines.push(`bind "${b.key}" "+${n}"`);
+      return lines.join('\n');
+    }
+    if(b.type==='cfgexec'){
+      const n=`cfg_${b.execType}_${b.key}`.replace(/[^a-zA-Z0-9_]/g,'_');
+      const lines=[];
+      if(b.desc) lines.push(`// ${b.desc}`);
+      if(b.execType==='simple'){
+        const f=b.file.endsWith('.cfg')?b.file:b.file+'.cfg';
+        lines.push(`bind "${b.key}" "exec ${f}"`);
+      } else if(b.execType==='toggle'){
+        const ca=(b.fa||'').endsWith('.cfg')?b.fa:(b.fa||'')+'.cfg';
+        const cb=(b.fb||'').endsWith('.cfg')?b.fb:(b.fb||'')+'.cfg';
+        if(b.fa) lines.push(`alias "${n}_a" "exec ${ca}; alias ${n} ${n}_b"`);
+        if(b.fb) lines.push(`alias "${n}_b" "exec ${cb}; alias ${n} ${n}_a"`);
+        lines.push(`alias "${n}" "${n}_a"`);
+        lines.push(`bind "${b.key}" "${n}"`);
+      } else if(b.execType==='hold'){
+        const cp=(b.fp||'').endsWith('.cfg')?b.fp:(b.fp||'')+'.cfg';
+        const cr=(b.fr||'').endsWith('.cfg')?b.fr:(b.fr||'')+'.cfg';
+        if(b.fp) lines.push(`alias "+${n}" "exec ${cp}"`);
+        if(b.fr) lines.push(`alias "-${n}" "exec ${cr}"`);
+        lines.push(`bind "${b.key}" "+${n}"`);
+      }
+      return lines.join('\n');
+    }
+    return '';
+  }).filter(Boolean).join('\n\n');
+}
+
+function renderSwitchBinds(){
+  const list=document.getElementById('bs-list');
+  const preview=document.getElementById('bs-preview');
+  if(!STATE.switchBinds.length){
+    list.innerHTML='<div style="color:var(--muted);font-style:italic;font-size:.82rem;padding:.5rem">No binds yet.</div>';
+    preview.textContent='// No binds yet';
   } else {
-    settingChanges[name] = val.trim();
+    const typeMap={simple:'bt-simple',toggle:'bt-toggle',hold:'bt-hold',cfgexec:'bt-cfg'};
+    const typeLabel={simple:'Simple',toggle:'Toggle',hold:'Hold',cfgexec:'CFG Exec'};
+    list.innerHTML=STATE.switchBinds.map((b,i)=>
+      `<div class="bs-row">
+        <span class="bs-type-badge ${typeMap[b.type]}">${typeLabel[b.type]}</span>
+        <span style="color:var(--ctp-peach);font-family:Consolas,monospace;font-weight:700;min-width:55px">${esc(b.key)}</span>
+        <span style="flex:1;color:var(--muted);font-size:.78rem">${esc(b.desc||b.cmd||b.alias||b.file||'')}</span>
+        <button class="btn btn-danger" onclick="removeSwitchBind(${i})">✕</button>
+      </div>`
+    ).join('');
+    preview.textContent=genSwitchCfg();
   }
-  const count = Object.keys(settingChanges).length;
-  document.getElementById('statusbar-settings').textContent = count + ' setting' + (count !== 1 ? 's' : '') + ' changed';
+  document.getElementById('sb-sw').textContent=STATE.switchBinds.length+' switch bind'+(STATE.switchBinds.length!==1?'s':'');
 }
 
-// =====================================================================
-// CFG GENERATION
-// =====================================================================
-function buildCfg() {
-  const lines = [];
-  lines.push('// =============================================');
-  lines.push('// autoexec.cfg — generated by CS2 CFG Configurator Web Demo');
-  lines.push('// https://vsvito420.github.io/cs2-cfg-configurator/demo.html');
-  lines.push('// Generated: ' + new Date().toLocaleString());
-  lines.push('// =============================================');
-  lines.push('');
+function removeSwitchBind(i){STATE.switchBinds.splice(i,1);save();renderSwitchBinds();updateDash();}
 
-  if (Object.keys(settingChanges).length > 0) {
-    lines.push('// --- Settings ---');
-    for (const [k, v] of Object.entries(settingChanges)) {
-      lines.push(`${k} ${v}`);
-    }
+function copySwitchBinds(){
+  navigator.clipboard.writeText(genSwitchCfg()).then(()=>showToast('Copied!'));
+}
+
+// =============================================================
+// SETTINGS EDITOR
+// =============================================================
+function buildSettingsTable(q=''){
+  const ql=q.toLowerCase();
+  const rows=CONVARS.filter(c=>!ql||c.n.includes(ql)||c.c.toLowerCase().includes(ql)||c.t.toLowerCase().includes(ql));
+  document.getElementById('set-tbody').innerHTML=rows.map(c=>
+    `<tr>
+      <td class="cv">${esc(c.n)}</td>
+      <td style="color:var(--muted);font-size:.75rem">${esc(c.c)}</td>
+      <td class="cd">${esc(c.d)}</td>
+      <td style="color:var(--muted);font-size:.74rem">${esc(c.r)}</td>
+      <td><input type="text" placeholder="${esc(c.d)}" value="${esc(STATE.settings[c.n]??'')}" oninput="setSetting('${esc(c.n)}',this.value)" style="width:90px" /></td>
+      <td style="color:var(--muted);font-size:.75rem">${esc(c.t)}</td>
+    </tr>`
+  ).join('');
+}
+function filterSettings(){buildSettingsTable(document.getElementById('set-search').value);}
+function setSetting(n,v){
+  if(v.trim()===''){ delete STATE.settings[n]; }
+  else { STATE.settings[n]=v.trim(); }
+  save();
+  const cnt=Object.keys(STATE.settings).length;
+  document.getElementById('sb-set').textContent=cnt+' setting'+(cnt!==1?'s':'');
+  updateDash();
+}
+
+// =============================================================
+// CFG EDITOR
+// =============================================================
+function updateCfgEditor(){
+  document.getElementById('cfg-editor-area').value=STATE.cfgText;
+  updateCfgMeta();
+}
+function updateCfgMeta(){
+  const lines=STATE.cfgText.split('\n').length;
+  document.getElementById('cfg-linecount').textContent=lines+' line'+(lines!==1?'s':'');
+  document.getElementById('cfg-filename-label').textContent=STATE.cfgFileName||'Unsaved';
+  updateDash();
+}
+function onCfgEdit(){
+  STATE.cfgText=document.getElementById('cfg-editor-area').value;
+  save();
+  updateCfgMeta();
+}
+function newCfg(){
+  STATE.cfgText='';STATE.cfgFileName='autoexec.cfg';
+  save();updateCfgEditor();
+}
+async function readCfgFile(){
+  if(!dirHandle){alert('Select your CS2 cfg folder in the sidebar first.');return;}
+  try{
+    const [fh]=await window.showOpenFilePicker({types:[{description:'CFG files',accept:{'text/plain':['.cfg']}}],startIn:dirHandle});
+    const f=await fh.getFile();
+    STATE.cfgText=await f.text();
+    STATE.cfgFileName=f.name;
+    save();updateCfgEditor();
+    showToast('Loaded: '+f.name);
+  }catch(e){if(e.name!=='AbortError')console.error(e);}
+}
+async function saveCfgFile(){
+  if(!dirHandle){alert('Select your CS2 cfg folder first.');return;}
+  try{
+    const fh=await dirHandle.getFileHandle(STATE.cfgFileName||'autoexec.cfg',{create:true});
+    const w=await fh.createWritable();
+    await w.write(STATE.cfgText);await w.close();
+    showToast('💾 Saved: '+STATE.cfgFileName);
+  }catch(e){alert('Error: '+e.message);}
+}
+function downloadCfgFile(){
+  dlBlob(STATE.cfgText, STATE.cfgFileName||'autoexec.cfg');
+}
+
+// =============================================================
+// COMMAND VIEWER
+// =============================================================
+function buildCmdViewer(q=''){
+  const ql=q.toLowerCase();
+  const cmds=COMMANDS.filter(c=>!ql||c.n.includes(ql)||c.d.toLowerCase().includes(ql));
+  document.getElementById('cmd-grid').innerHTML=cmds.map(c=>
+    `<div class="cmd-card">
+      <div class="cmd-name">${esc(c.n)}</div>
+      <div class="cmd-desc">${esc(c.d)}</div>
+    </div>`
+  ).join('');
+}
+function filterCmds(){buildCmdViewer(document.getElementById('cmd-search').value);}
+
+// =============================================================
+// EXPORT
+// =============================================================
+function buildAutoexec(){
+  const lines=[
+    '// ================================================',
+    '// autoexec.cfg — CS2 CFG Configurator Web Edition',
+    '// https://vsvito420.github.io/cs2-cfg-configurator/demo.html',
+    '// Generated: '+new Date().toLocaleString(),
+    '// ================================================',
+    '',
+  ];
+  if(Object.keys(STATE.settings).length){
+    lines.push('// ─── Settings ───');
+    for(const [k,v] of Object.entries(STATE.settings)) lines.push(`${k} ${v}`);
     lines.push('');
   }
-
-  if (binds.length > 0) {
-    lines.push('// --- Binds ---');
-    for (const b of binds) {
-      lines.push(`bind "${b.key}" "${b.cmd}"`);
-    }
+  if(STATE.buyBinds.length){
+    lines.push('// ─── Buy Binds ───');
+    STATE.buyBinds.forEach(b=>lines.push(`bind "${b.key}" "${b.cmd}"`))
     lines.push('');
   }
-
+  const sw=genSwitchCfg();
+  if(sw){
+    lines.push('// ─── Bind Switcher ───');
+    lines.push(sw);
+    lines.push('');
+  }
+  if(STATE.cfgText.trim()){
+    lines.push('// ─── CFG Editor content ───');
+    lines.push(STATE.cfgText.trim());
+    lines.push('');
+  }
   lines.push('echo "[autoexec] Config loaded ✓"');
   return lines.join('\n');
 }
 
-function refreshExportPreview() {
-  document.getElementById('full-cfg-preview').textContent = buildCfg();
+function refreshExport(){
+  document.getElementById('exp-preview').textContent=buildAutoexec();
 }
-
-function copyCfg() {
-  navigator.clipboard.writeText(buildCfg()).then(() => showToast('CFG copied!'));
+function copyFull(){
+  navigator.clipboard.writeText(buildAutoexec()).then(()=>showToast('Copied!'));
 }
-
-function downloadCfg() {
-  const blob = new Blob([buildCfg()], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'autoexec.cfg';
-  a.click();
+function downloadAutoexec(){
+  dlBlob(buildAutoexec(),'autoexec.cfg');
 }
-
-async function saveCfg() {
-  const status = document.getElementById('save-status');
-  if (!dirHandle) {
-    status.innerHTML = '<div class="alert alert-warn">⚠️ No folder selected. Pick your CS2 cfg folder in the sidebar first.</div>';
+async function saveAutoexec(){
+  const status=document.getElementById('exp-status');
+  if(!dirHandle){
+    status.innerHTML='<div class="alert alert-warn">⚠️ No folder selected. Use the sidebar.</div>';
     return;
   }
-  try {
-    const fh = await dirHandle.getFileHandle('autoexec.cfg', { create: true });
-    const w = await fh.createWritable();
-    await w.write(buildCfg());
-    await w.close();
-    status.innerHTML = '<div class="alert alert-success">✅ autoexec.cfg saved to <strong>' + dirHandle.name + '</strong> successfully!</div>';
-  } catch (e) {
-    status.innerHTML = '<div class="alert alert-warn">❌ Error: ' + escHtml(e.message) + '</div>';
+  try{
+    const fh=await dirHandle.getFileHandle('autoexec.cfg',{create:true});
+    const w=await fh.createWritable();
+    await w.write(buildAutoexec());await w.close();
+    status.innerHTML='<div class="alert alert-ok">✅ autoexec.cfg saved to <strong>'+dirHandle.name+'</strong>!</div>';
+  }catch(e){
+    status.innerHTML='<div class="alert alert-red">❌ Error: '+esc(e.message)+'</div>';
   }
 }
 
-// =====================================================================
+// =============================================================
+// DASHBOARD
+// =============================================================
+function updateDash(){
+  document.getElementById('d-buybinds').textContent=STATE.buyBinds.length;
+  document.getElementById('d-switchbinds').textContent=STATE.switchBinds.length;
+  document.getElementById('d-settings').textContent=Object.keys(STATE.settings).length;
+  const cfgLines=STATE.cfgText.trim()?STATE.cfgText.split('\n').length:0;
+  document.getElementById('d-cfglines').textContent=cfgLines;
+}
+
+// =============================================================
 // UTILS
-// =====================================================================
-function escHtml(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// =============================================================
+function esc(s){
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-function showToast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  Object.assign(t.style, {
-    position:'fixed', bottom:'2rem', right:'2rem',
-    background:'var(--ctp-green)', color:'var(--ctp-crust)',
-    padding:'0.5rem 1.1rem', borderRadius:'6px',
-    fontWeight:'700', fontSize:'0.88rem', zIndex:'9999',
-    boxShadow:'0 4px 16px rgba(0,0,0,0.4)'
-  });
+function dlBlob(text,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download=name;a.click();
+}
+function showToast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'1.5rem',right:'1.5rem',
+    background:'var(--ctp-green)',color:'var(--ctp-crust)',
+    padding:'.45rem 1rem',borderRadius:'5px',fontWeight:'700',
+    fontSize:'.84rem',zIndex:'9999',boxShadow:'0 4px 16px rgba(0,0,0,.4)'});
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2000);
+  setTimeout(()=>t.remove(),2200);
 }
-
-// Check API support on load
-if (!('showDirectoryPicker' in window)) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const note = document.getElementById('api-support-note');
-    if (note) {
-      note.className = 'alert alert-warn';
-      note.innerHTML = '⚠️ <strong>File System Access API not supported</strong> — your browser (likely Firefox/Safari) cannot write files directly. Use the <strong>Download</strong> button instead.';
-    }
-  });
-}
-
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-  buildSettingsTable();
-  renderBinds();
-});
 </script>
 </body>
 </html>
