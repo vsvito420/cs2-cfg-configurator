@@ -1,179 +1,735 @@
 <!doctype html>
 <html lang="de">
-
 <head>
   <meta charset="utf-8">
-  <!-- This is a simple web version of the CS2 Bind Generator. It uses only HTML and JavaScript, no Python. The logic is directly in the browser. -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CS2 Bind Generator</title>
+  <title>CS2 Config Editor – Demo</title>
   <style>
-    :root {
-      color-scheme: dark
-    }
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: system-ui, sans-serif;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px;
       background: #0b0f14;
-      color: #e8eef6
+      color: #e8eef6;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
     }
 
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: #0d1117;
+      border-right: 1px solid #1e2a38;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+    #sidebar-header {
+      padding: 16px 14px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #4a6074;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #1e2a38;
+    }
+    .sidebar-section {
+      padding: 12px 14px 8px;
+      border-bottom: 1px solid #1a2533;
+    }
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #4a6074;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .folder-picker-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .folder-picker-label {
+      font-size: 11px;
+      color: #7a9ab5;
+    }
+    .folder-btn {
+      width: 100%;
+      padding: 7px 10px;
+      background: #141c27;
+      border: 1px solid #1e2a38;
+      border-radius: 8px;
+      color: #9fb8d0;
+      font-size: 11px;
+      cursor: pointer;
+      text-align: left;
+      transition: background .15s, border-color .15s;
+    }
+    .folder-btn:hover { background: #1a2535; border-color: #2d6cdf; }
+    .folder-status {
+      font-size: 10px;
+      color: #4a6074;
+      min-height: 14px;
+      padding: 2px 0 0 2px;
+      transition: color .2s;
+    }
+    .folder-status.ok { color: #3fb950; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      font-size: 12px;
+      color: #7a9ab5;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background .12s, color .12s;
+      user-select: none;
+    }
+    .nav-item:hover { background: #111b27; color: #e8eef6; }
+    .nav-item.active { background: #162032; color: #58a6ff; font-weight: 600; border-left: 2px solid #2d6cdf; }
+
+    /* ── MAIN ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      height: 46px;
+      background: #0d1117;
+      border-bottom: 1px solid #1e2a38;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    #topbar-title { font-size: 14px; font-weight: 700; color: #e8eef6; }
+    #topbar-badge {
+      font-size: 10px;
+      background: #1a2d44;
+      color: #58a6ff;
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-weight: 600;
+    }
+
+    /* ── CONTENT ── */
+    #content { flex: 1; overflow-y: auto; padding: 20px 22px; }
+
+    /* ── STATUSBAR ── */
+    #statusbar {
+      height: 26px;
+      background: #2d6cdf;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      font-size: 11px;
+      color: #c8deff;
+      flex-shrink: 0;
+    }
+    #statusbar-msg { flex: 1; }
+    #statusbar-time { opacity: .8; }
+
+    /* ── BANNER ── */
+    .banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #1a2d44;
+      border: 1px solid #2d6cdf;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-size: 12px;
+      color: #9fcbf7;
+      line-height: 1.5;
+    }
+    .banner-icon { font-size: 16px; flex-shrink: 0; }
+    .banner b { color: #58a6ff; }
+
+    /* ── PAGE SECTIONS ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── CARDS ── */
     .card {
       background: #121923;
-      border: 1px solid #243041;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 18px
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px
-    }
-
-    .items {
-      columns: 2;
-      column-gap: 24px
-    }
-
-    .item {
-      break-inside: avoid;
-      display: block;
-      margin: 8px 0
-    }
-
-    input[type=text],
-    select,
-    textarea,
-    button {
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 10px;
-      border: 1px solid #2b3a4d;
-      background: #0d141d;
-      color: #e8eef6;
-      padding: 10px 12px
-    }
-
-    button {
-      cursor: pointer;
-      background: #2d6cdf;
-      border: 0;
-      font-weight: 700
-    }
-
-    button:hover {
-      background: #2458b8
-    }
-
-    pre {
-      background: #06090d;
-      border: 1px solid #243041;
-      padding: 14px;
+      border: 1px solid #1e2a38;
       border-radius: 12px;
-      overflow: auto
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #c9d6e3;
+      margin-bottom: 12px;
     }
 
-    .muted {
-      color: #9fb0c3
+    /* ── BIND GENERATOR ── */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .items { columns: 2; column-gap: 20px; }
+    .item { break-inside: avoid; display: block; margin: 6px 0; font-size: 13px; }
+    input[type=text], select, textarea {
+      width: 100%; border-radius: 8px;
+      border: 1px solid #1e2a38; background: #0d141d;
+      color: #e8eef6; padding: 8px 11px; font-size: 13px;
+    }
+    input[type=text]:focus, select:focus { outline: none; border-color: #2d6cdf; }
+    .btn {
+      cursor: pointer; background: #2d6cdf; border: 0; font-weight: 700;
+      border-radius: 8px; padding: 9px 14px; color: #fff; font-size: 13px;
+      width: 100%; transition: background .15s;
+    }
+    .btn:hover { background: #2458b8; }
+    .btn.secondary { background: #1a2535; border: 1px solid #1e2a38; color: #9fb8d0; }
+    .btn.secondary:hover { background: #1e2d40; }
+    pre {
+      background: #06090d; border: 1px solid #1e2a38;
+      padding: 12px; border-radius: 10px; overflow: auto;
+      font-size: 12px; color: #a6e3a1;
+    }
+    .muted { color: #4a6074; }
+
+    /* ── CONVAR BROWSER ── */
+    #convar-toolbar {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    #convar-search {
+      flex: 1; min-width: 160px;
+      border-radius: 8px; border: 1px solid #1e2a38;
+      background: #0d141d; color: #e8eef6;
+      padding: 7px 11px; font-size: 12px;
+    }
+    #convar-search:focus { outline: none; border-color: #2d6cdf; }
+    #convar-source-select {
+      border-radius: 8px; border: 1px solid #1e2a38;
+      background: #0d141d; color: #e8eef6;
+      padding: 7px 11px; font-size: 12px;
+    }
+    #convar-count { font-size: 11px; color: #4a6074; white-space: nowrap; }
+
+    .convar-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #1e2a38; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      background: #0d1117; color: #4a6074;
+      padding: 8px 12px; text-align: left;
+      border-bottom: 1px solid #1e2a38;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .05em; text-transform: uppercase;
+      position: sticky; top: 0;
+    }
+    tbody tr { border-bottom: 1px solid #131c27; transition: background .1s; }
+    tbody tr:hover { background: #111b27; }
+    tbody td { padding: 7px 12px; vertical-align: top; }
+    .td-key { color: #58a6ff; font-family: Consolas, monospace; font-size: 11px; }
+    .td-val { color: #a6e3a1; font-family: Consolas, monospace; font-size: 11px; }
+    .td-src { color: #4a6074; font-size: 10px; }
+    .td-custom input[type=text] {
+      padding: 4px 8px; font-size: 11px;
+      background: #0d141d; border: 1px solid #1e2a38;
+      border-radius: 5px; color: #e8eef6; width: 120px;
+    }
+    .td-custom input[type=text]:focus { border-color: #2d6cdf; outline: none; }
+    .changed-row { background: #0f1f14 !important; }
+    .changed-badge {
+      display: inline-block; font-size: 9px;
+      background: #1a3d2a; color: #3fb950;
+      border-radius: 6px; padding: 1px 6px; margin-left: 5px;
     }
 
-    @media (max-width:760px) {
+    .export-bar {
+      display: flex; gap: 10px; align-items: center;
+      padding: 10px 14px; background: #0d1117;
+      border-top: 1px solid #1e2a38; border-radius: 0 0 12px 12px;
+      flex-wrap: wrap;
+    }
+    .export-bar span { font-size: 11px; color: #4a6074; flex: 1; }
 
-      .grid,
-      .items {
-        grid-template-columns: 1fr;
-        columns: 1
-      }
+    /* ── DASHBOARD STATS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 12px; }
+    .stat-card {
+      background: #0d1117; border: 1px solid #1e2a38;
+      border-radius: 10px; padding: 14px 12px;
+      text-align: center;
+    }
+    .stat-card .stat-val { font-size: 22px; font-weight: 700; color: #58a6ff; }
+    .stat-card .stat-lbl { font-size: 11px; color: #4a6074; margin-top: 4px; }
+
+    @media (max-width: 700px) {
+      body { flex-direction: column; }
+      #sidebar { width: 100%; min-width: unset; height: auto; border-right: none; border-bottom: 1px solid #1e2a38; }
+      .grid, .items { grid-template-columns: 1fr; columns: 1; }
     }
   </style>
 </head>
-
 <body>
-  <h1>CS2 Buy Bind Generator</h1>
-  <p class="muted">Nur HTML/JS, kein Python. Die Logik ist direkt im Browser.</p>
 
-  <div class="card grid">
-    <label>Bind-Taste
-      <input id="key" type="text" value="f1" placeholder="z.B. f1, mouse4, kp_1">
-    </label>
-    <label>Team
-      <select id="team">
-        <option value="Both">Both</option>
-        <option value="T">T</option>
-        <option value="CT">CT</option>
-      </select>
-    </label>
+<!-- ── SIDEBAR ── -->
+<nav id="sidebar">
+  <div id="sidebar-header">CS2 Config Editor</div>
+
+  <!-- Folder Picker 1: cs2/cfg -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">📁 CS2 CFG-Ordner</div>
+    <div class="folder-picker-row">
+      <span class="folder-picker-label">CS2 Installations-CFG</span>
+      <button class="folder-btn" onclick="pickFolder('cfg')">📂 Ordner wählen…</button>
+      <div class="folder-status" id="status-cfg">Noch kein Ordner gewählt</div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Weapons</h2>
-    <div id="weapons" class="items"></div>
+  <!-- Folder Picker 2: Steam userdata cfg -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">🎮 Steam Userdata CFG</div>
+    <div class="folder-picker-row">
+      <span class="folder-picker-label">Steam\userdata\…\730\local\cfg</span>
+      <button class="folder-btn" onclick="pickFolder('userdata')">📂 Ordner wählen…</button>
+      <div class="folder-status" id="status-userdata">Noch kein Ordner gewählt</div>
+    </div>
+    <div style="font-size:10px;color:#3a4f62;margin-top:6px;line-height:1.5;">
+      Für ConVars & Video-Settings (.vcfg)
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Utility</h2>
-    <div id="utility" class="items"></div>
+  <!-- Nav -->
+  <div style="padding:8px 0;">
+    <div class="nav-item active" onclick="navigate('dashboard', this)">🏠 &nbsp;Dashboard</div>
+    <div class="nav-item" onclick="navigate('convar', this)">⚙️ &nbsp;ConVar Browser</div>
+    <div class="nav-item" onclick="navigate('binds', this)">🛒 &nbsp;Buy Bind Generator</div>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<div id="main">
+  <div id="topbar">
+    <span id="topbar-title">Dashboard</span>
+    <span id="topbar-badge">Demo</span>
   </div>
 
-  <div class="card">
-    <button onclick="generate()">Generate Bind</button>
+  <div id="content">
+
+    <!-- ── PAGE: DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="banner">
+        <span class="banner-icon">ℹ️</span>
+        <div>
+          <b>Zwei Ordner nötig!</b><br>
+          Wähle in der Sidebar sowohl den <b>CS2 CFG-Ordner</b>
+          (<code>…/Counter-Strike Global Offensive/game/csgo/cfg</code>)
+          als auch den <b>Steam Userdata CFG-Ordner</b>
+          (<code>Steam\userdata\&lt;SteamID&gt;\730\local\cfg</code>) –
+          nur dann können ConVars &amp; Video-Settings gelesen werden.
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-cfg-files">—</div>
+          <div class="stat-lbl">CFG-Dateien</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-vcfg-files">—</div>
+          <div class="stat-lbl">VCFG-Dateien</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-convars">—</div>
+          <div class="stat-lbl">ConVars geladen</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-changed">0</div>
+          <div class="stat-lbl">Geänderte Werte</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: CONVAR BROWSER ── -->
+    <div class="page" id="page-convar">
+      <div class="banner" id="banner-convar">
+        <span class="banner-icon">⚠️</span>
+        <div>
+          <b>Steam Userdata CFG-Ordner nicht geladen.</b><br>
+          Wähle in der Sidebar den Ordner
+          <code>Steam\userdata\&lt;SteamID&gt;\730\local\cfg</code>
+          um ConVars aus <code>cs2_machine_convars.vcfg</code>,
+          <code>cs2_user_convars_0_slot0.vcfg</code> und
+          <code>cs2_video.txt</code> zu laden.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⚙️ ConVar Browser</h2>
+        <p style="font-size:12px;color:#4a6074;margin-bottom:12px;">
+          Browse CS2 ConVars, set custom values. Changed values are included in Export.
+        </p>
+        <div id="convar-toolbar">
+          <input id="convar-search" type="text" placeholder="🔍 ConVar suchen…" oninput="filterConvars()">
+          <select id="convar-source-select" onchange="filterConvars()">
+            <option value="all">Alle Quellen</option>
+            <option value="machine">cs2_machine_convars.vcfg</option>
+            <option value="user">cs2_user_convars_0_slot0.vcfg</option>
+            <option value="video">cs2_video.txt</option>
+          </select>
+          <span id="convar-count">0 ConVars</span>
+        </div>
+        <div class="convar-table-wrap">
+          <table id="convar-table">
+            <thead>
+              <tr>
+                <th>ConVar / Key</th>
+                <th>Aktueller Wert</th>
+                <th>Benutzerwert</th>
+                <th>Quelle</th>
+              </tr>
+            </thead>
+            <tbody id="convar-tbody">
+              <tr><td colspan="4" style="color:#3a4f62;padding:20px;text-align:center;">
+                Lade Steam Userdata CFG-Ordner um ConVars anzuzeigen.
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="export-bar">
+          <span id="export-info">0 geänderte Werte</span>
+          <button class="btn secondary" style="width:auto;padding:7px 14px;" onclick="exportChanged()">📋 Geänderte exportieren</button>
+          <button class="btn" style="width:auto;padding:7px 14px;" onclick="exportAll()">💾 Alle exportieren</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: BUY BINDS ── -->
+    <div class="page" id="page-binds">
+      <div class="banner">
+        <span class="banner-icon">ℹ️</span>
+        <div>
+          <b>Buy Bind Generator</b> – Nur HTML/JS, kein Python. Generierte Binds können in deinen
+          CFG-Ordner exportiert werden, sobald dieser geladen ist.
+        </div>
+      </div>
+
+      <div class="card grid">
+        <label>Bind-Taste
+          <input id="key" type="text" value="f1" placeholder="z.B. f1, mouse4, kp_1">
+        </label>
+        <label>Team
+          <select id="team">
+            <option value="Both">Both</option>
+            <option value="T">T</option>
+            <option value="CT">CT</option>
+          </select>
+        </label>
+      </div>
+      <div class="card">
+        <h2>Weapons</h2>
+        <div id="weapons" class="items"></div>
+      </div>
+      <div class="card">
+        <h2>Utility</h2>
+        <div id="utility" class="items"></div>
+      </div>
+      <div class="card">
+        <button class="btn" onclick="generate()">Generate Bind</button>
+      </div>
+      <div class="card">
+        <h2>Output</h2>
+        <pre id="out">bind "f1" ""</pre>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ── STATUSBAR ── -->
+  <div id="statusbar">
+    <span id="statusbar-msg">Bereit — wähle Ordner in der Sidebar</span>
+    <span id="statusbar-time"></span>
   </div>
+</div>
 
-  <div class="card">
-    <h2>Output</h2>
-    <pre id="out">bind "f1" ""</pre>
-  </div>
+<script>
+// ── STATE ──
+const state = {
+  cfgFolder: null,
+  userdataFolder: null,
+  cfgTimestamp: null,
+  userdataTimestamp: null,
+  allConvars: [],   // [{key, value, source, customValue}]
+};
 
-  <script>
-    const items = [
-      { id: 'ak47', label: 'AK-47', cmd: 'buy ak47', team: 'T' },
-      { id: 'm4a1s', label: 'M4A1-S', cmd: 'buy m4a1_silencer', team: 'CT' },
-      { id: 'awp', label: 'AWP', cmd: 'buy awp', team: 'Both' },
-      { id: 'deagle', label: 'Desert Eagle', cmd: 'buy deagle', team: 'Both' },
-      { id: 'vesthelm', label: 'Kevlar + Helmet', cmd: 'buy vesthelm', team: 'Both' },
-      { id: 'defuser', label: 'Defuse Kit', cmd: 'buy defuser', team: 'CT' },
-      { id: 'flash1', label: 'Flashbang 1', cmd: 'buy flashbang', team: 'Both', max: 2 },
-      { id: 'flash2', label: 'Flashbang 2', cmd: 'buy flashbang', team: 'Both', max: 2 },
-      { id: 'smoke', label: 'Smoke', cmd: 'buy smokegrenade', team: 'Both', max: 1 },
-      { id: 'he', label: 'HE Grenade', cmd: 'buy hegrenade', team: 'Both', max: 1 },
-      { id: 'molotov', label: 'Molotov', cmd: 'buy molotov', team: 'T', max: 1 },
-      { id: 'inc', label: 'Incendiary', cmd: 'buy incgrenade', team: 'CT', max: 1 },
-    ];
+// ── STATUSBAR ──
+function setStatus(msg) {
+  document.getElementById('statusbar-msg').textContent = msg;
+  const now = new Date();
+  document.getElementById('statusbar-time').textContent =
+    'Letztes Update: ' + now.toLocaleTimeString('de-DE');
+}
 
-    const weapons = ['ak47', 'm4a1s', 'awp', 'deagle'];
-    const utility = ['vesthelm', 'defuser', 'flash1', 'flash2', 'smoke', 'he', 'molotov', 'inc'];
+// ── NAVIGATION ──
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  el.classList.add('active');
+  const titles = { dashboard: 'Dashboard', convar: 'ConVar Browser', binds: 'Buy Bind Generator' };
+  document.getElementById('topbar-title').textContent = titles[page] || page;
+  setStatus('Seite gewechselt: ' + (titles[page] || page));
+}
 
-    function render(list, target) {
-      document.getElementById(target).innerHTML = list.map(id => {
-        const i = items.find(x => x.id === id);
-        return `<label class="item"><input type="checkbox" value="${i.id}"> ${i.label} <span class="muted">(${i.cmd})</span></label>`;
-      }).join('');
+// ── FOLDER PICKER ──
+async function pickFolder(type) {
+  if (!window.showDirectoryPicker) {
+    alert('Dein Browser unterstützt die File System Access API nicht.\nBitte Chrome/Edge 86+ verwenden.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'read' });
+    const now = new Date();
+    const ts = now.toLocaleTimeString('de-DE');
+
+    if (type === 'cfg') {
+      state.cfgFolder = handle;
+      state.cfgTimestamp = ts;
+      const el = document.getElementById('status-cfg');
+      el.textContent = '✅ cfg — ausgewählt um ' + ts;
+      el.className = 'folder-status ok';
+      setStatus('CFG-Ordner geladen: ' + handle.name + ' um ' + ts);
+      await scanCfgFolder(handle);
+    } else {
+      state.userdataFolder = handle;
+      state.userdataTimestamp = ts;
+      const el = document.getElementById('status-userdata');
+      el.textContent = '✅ userdata/cfg — ausgewählt um ' + ts;
+      el.className = 'folder-status ok';
+      setStatus('Steam Userdata CFG geladen: ' + handle.name + ' um ' + ts);
+      await loadConvars(handle);
     }
-    render(weapons, 'weapons');
-    render(utility, 'utility');
+    updateDashboardStats();
+  } catch (e) {
+    if (e.name !== 'AbortError') console.error(e);
+  }
+}
 
-    function generate() {
-      const key = document.getElementById('key').value.trim() || 'f1';
-      const team = document.getElementById('team').value;
-      const checked = [...document.querySelectorAll('input[type=checkbox]:checked')].map(x => x.value);
-      const counts = {};
-      const cmds = [];
-      for (const id of checked) {
-        const item = items.find(x => x.id === id);
-        if (!(item.team === 'Both' || item.team === team)) continue;
-        if (item.max) {
-          counts[id] = (counts[id] || 0) + 1;
-          if (counts[id] > item.max) continue;
-        }
-        cmds.push(item.cmd);
-      }
-      document.getElementById('out').textContent = `bind "${key}" "${cmds.join('; ')}"`;
+// ── SCAN CFG FOLDER ──
+async function scanCfgFolder(handle) {
+  let count = 0;
+  for await (const [, entry] of handle.entries()) {
+    if (entry.kind === 'file' && entry.name.endsWith('.cfg')) count++;
+  }
+  document.getElementById('stat-cfg-files').textContent = count;
+}
+
+// ── LOAD CONVARS from userdata/cfg ──
+const VCFG_SOURCES = [
+  { filename: 'cs2_machine_convars.vcfg',        key: 'machine' },
+  { filename: 'cs2_user_convars_0_slot0.vcfg',   key: 'user'    },
+  { filename: 'cs2_video.txt',                   key: 'video'   },
+];
+
+async function loadConvars(dirHandle) {
+  state.allConvars = [];
+  let vcfgCount = 0;
+
+  for (const src of VCFG_SOURCES) {
+    try {
+      const fileHandle = await dirHandle.getFileHandle(src.filename);
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      const parsed = parseVcfg(text, src.key);
+      state.allConvars.push(...parsed);
+      vcfgCount++;
+    } catch (e) {
+      // file not present – skip
     }
-  </script>
+  }
+
+  document.getElementById('stat-vcfg-files').textContent = vcfgCount;
+  document.getElementById('stat-convars').textContent = state.allConvars.length;
+
+  // Hide banner if at least one file loaded
+  if (vcfgCount > 0) {
+    document.getElementById('banner-convar').style.display = 'none';
+  }
+
+  renderConvarTable(state.allConvars);
+  setStatus('ConVars geladen: ' + state.allConvars.length + ' Einträge aus ' + vcfgCount + ' Dateien');
+}
+
+// ── VCFG PARSER ──
+// Handles both VDF-style ("key" "value") and simple key=value (cs2_video.txt)
+function parseVcfg(text, source) {
+  const results = [];
+  const vdfRe = /^\s*"([^"]+)"\s+"([^"]*)"/gm;
+  const kvRe  = /^\s*([^\s=]+)\s*=\s*(.+)$/gm;
+
+  let m;
+  // Try VDF first
+  let found = false;
+  while ((m = vdfRe.exec(text)) !== null) {
+    results.push({ key: m[1], value: m[2], source, customValue: '' });
+    found = true;
+  }
+  if (!found) {
+    while ((m = kvRe.exec(text)) !== null) {
+      results.push({ key: m[1].trim(), value: m[2].trim(), source, customValue: '' });
+    }
+  }
+  return results;
+}
+
+// ── RENDER TABLE ──
+function renderConvarTable(list) {
+  const tbody = document.getElementById('convar-tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#3a4f62;padding:20px;text-align:center;">Keine ConVars gefunden.</td></tr>';
+    document.getElementById('convar-count').textContent = '0 ConVars';
+    return;
+  }
+  document.getElementById('convar-count').textContent = list.length + ' ConVars';
+
+  tbody.innerHTML = list.map((cv, i) => {
+    const rowClass = cv.customValue ? 'changed-row' : '';
+    const badge = cv.customValue ? '<span class="changed-badge">geändert</span>' : '';
+    const srcLabels = { machine: 'machine_convars', user: 'user_convars', video: 'video.txt' };
+    return `<tr class="${rowClass}" id="cv-row-${i}">
+      <td class="td-key">${escHtml(cv.key)}${badge}</td>
+      <td class="td-val">${escHtml(cv.value)}</td>
+      <td class="td-custom">
+        <input type="text" value="${escHtml(cv.customValue)}"
+          placeholder="Eigener Wert…"
+          oninput="setCustomValue(${i}, this.value)"
+          title="Eigenen Wert setzen – wird beim Export verwendet">
+      </td>
+      <td class="td-src">${srcLabels[cv.source] || cv.source}</td>
+    </tr>`;
+  }).join('');
+
+  updateChangedCount();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FILTER ──
+function filterConvars() {
+  const q = document.getElementById('convar-search').value.trim().toLowerCase();
+  const src = document.getElementById('convar-source-select').value;
+  const filtered = state.allConvars.filter(cv => {
+    if (src !== 'all' && cv.source !== src) return false;
+    if (q && !cv.key.toLowerCase().includes(q) && !cv.value.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderConvarTable(filtered);
+}
+
+// ── CUSTOM VALUE ──
+function setCustomValue(index, val) {
+  state.allConvars[index].customValue = val;
+  const row = document.getElementById('cv-row-' + index);
+  if (row) row.className = val ? 'changed-row' : '';
+  updateChangedCount();
+}
+
+function updateChangedCount() {
+  const n = state.allConvars.filter(cv => cv.customValue !== '').length;
+  document.getElementById('stat-changed').textContent = n;
+  document.getElementById('export-info').textContent = n + ' geänderte Werte';
+}
+
+// ── EXPORT ──
+function exportChanged() {
+  const changed = state.allConvars.filter(cv => cv.customValue !== '');
+  if (!changed.length) { alert('Keine geänderten Werte.'); return; }
+  const lines = changed.map(cv => `"${cv.key}" "${cv.customValue}"`);
+  copyToClipboard(lines.join('\n'), changed.length + ' geänderte ConVars kopiert!');
+}
+
+function exportAll() {
+  if (!state.allConvars.length) { alert('Keine ConVars geladen.'); return; }
+  const lines = state.allConvars.map(cv =>
+    `"${cv.key}" "${cv.customValue !== '' ? cv.customValue : cv.value}"`
+  );
+  copyToClipboard(lines.join('\n'), state.allConvars.length + ' ConVars kopiert!');
+}
+
+function copyToClipboard(text, msg) {
+  navigator.clipboard.writeText(text).then(() => {
+    setStatus('📋 ' + msg);
+    alert(msg + '\n(In Zwischenablage kopiert)');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    setStatus('📋 ' + msg);
+  });
+}
+
+// ── DASHBOARD STATS ──
+function updateDashboardStats() {
+  // already updated by individual handlers
+}
+
+// ── BUY BIND GENERATOR ──
+const bindItems = [
+  { id: 'ak47',    label: 'AK-47',          cmd: 'buy ak47',             team: 'T'    },
+  { id: 'm4a1s',   label: 'M4A1-S',         cmd: 'buy m4a1_silencer',    team: 'CT'   },
+  { id: 'awp',     label: 'AWP',             cmd: 'buy awp',              team: 'Both' },
+  { id: 'deagle',  label: 'Desert Eagle',   cmd: 'buy deagle',           team: 'Both' },
+  { id: 'vesthelm',label: 'Kevlar+Helmet',  cmd: 'buy vesthelm',         team: 'Both' },
+  { id: 'defuser', label: 'Defuse Kit',     cmd: 'buy defuser',          team: 'CT'   },
+  { id: 'flash1',  label: 'Flashbang 1',    cmd: 'buy flashbang',        team: 'Both', max: 2 },
+  { id: 'flash2',  label: 'Flashbang 2',    cmd: 'buy flashbang',        team: 'Both', max: 2 },
+  { id: 'smoke',   label: 'Smoke',          cmd: 'buy smokegrenade',     team: 'Both', max: 1 },
+  { id: 'he',      label: 'HE Grenade',     cmd: 'buy hegrenade',        team: 'Both', max: 1 },
+  { id: 'molotov', label: 'Molotov',        cmd: 'buy molotov',          team: 'T',    max: 1 },
+  { id: 'inc',     label: 'Incendiary',     cmd: 'buy incgrenade',       team: 'CT',   max: 1 },
+];
+const weapons = ['ak47','m4a1s','awp','deagle'];
+const utility = ['vesthelm','defuser','flash1','flash2','smoke','he','molotov','inc'];
+
+function renderBindItems(list, target) {
+  document.getElementById(target).innerHTML = list.map(id => {
+    const i = bindItems.find(x => x.id === id);
+    return `<label class="item"><input type="checkbox" value="${i.id}"> ${i.label} <span class="muted">(${i.cmd})</span></label>`;
+  }).join('');
+}
+renderBindItems(weapons, 'weapons');
+renderBindItems(utility, 'utility');
+
+function generate() {
+  const key  = document.getElementById('key').value.trim() || 'f1';
+  const team = document.getElementById('team').value;
+  const checked = [...document.querySelectorAll('input[type=checkbox]:checked')].map(x => x.value);
+  const counts = {}, cmds = [];
+  for (const id of checked) {
+    const item = bindItems.find(x => x.id === id);
+    if (!(item.team === 'Both' || item.team === team)) continue;
+    if (item.max) {
+      counts[id] = (counts[id] || 0) + 1;
+      if (counts[id] > item.max) continue;
+    }
+    cmds.push(item.cmd);
+  }
+  const result = `bind "${key}" "${cmds.join('; ')}"`;
+  document.getElementById('out').textContent = result;
+  setStatus('Bind generiert: ' + result.slice(0, 60) + (result.length > 60 ? '…' : ''));
+}
+
+// ── INIT ──
+setStatus('Bereit — wähle Ordner in der Sidebar');
+</script>
 </body>
-
 </html>
