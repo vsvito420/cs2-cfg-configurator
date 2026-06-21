@@ -17,7 +17,7 @@ I tried my best to explain it in github / docs / SECURITY.md
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightblue)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Stars](https://img.shields.io/github/stars/vsvito420/cs2-cfg-configurator?style=social)](https://github.com/vsvito420/cs2-cfg-configurator/stargazers)
-[![VirusTotal](https://img.shields.io/badge/VirusTotal-0%2F72%20clean-brightgreen?logo=virustotal)](https://www.virustotal.com/gui/file/40709856626afb9fc09a8995094d3eb38af55a577570a702f41175c691d170df)
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-3%2F68%20clean-brightgreen?logo=virustotal)](https://www.virustotal.com/gui/file/40709856626afb9fc09a8995094d3eb38af55a577570a702f41175c691d170df)
 [![Latest Release](https://img.shields.io/github/v/release/vsvito420/cs2-cfg-configurator?include_prereleases&label=Release)](https://github.com/vsvito420/cs2-cfg-configurator/releases/latest)
 
 ---
