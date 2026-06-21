@@ -31,6 +31,7 @@ NAV = [
         ]
     ),
     SidebarItem("🎮  Settings",          "CFG_MAN_settings"),
+    SidebarItem("💬  Feedback & About",  "about"),
 ]
 
 
@@ -77,6 +78,7 @@ class Sidebar(QWidget):
         ("📋  View Binds",      "buy_binds_viewer"),
         ("✏️   Edit Binds",      "buy_binds_editor"),
         ("🎮  Settings",        "CFG_MAN_settings"),
+        ("💬  Feedback & About","about"),
     ]
 
     def __init__(self, main_window, parent=None):

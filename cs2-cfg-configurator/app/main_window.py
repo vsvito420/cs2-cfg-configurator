@@ -11,6 +11,7 @@ from app.modules.buy_binds.view import BuyBindsPage
 from app.modules.buy_binds.viewer import BuyBindsViewer
 from app.modules.cfg_editor.view import CfgEditorPage
 from app.modules.bind_switcher.view import BindManagerPage
+from app.modules.about.view import AboutPage
 from app import settings_manager
 
 
@@ -49,6 +50,7 @@ class MainWindow(QMainWindow):
             "buy_binds_editor": BuyBindsPage(),
             "buy_binds_header": ModulePage("🛒  Buy Binds"),
             "CFG_MAN_settings": SettingsPage(self),
+            "about":            AboutPage(),
         }
         for page in self._pages.values():
             self.stack.addWidget(page)
