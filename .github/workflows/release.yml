@@ -3,10 +3,10 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*.*.*'   # Trigger nur bei Tags wie v0.1.0, v1.2.3
+      - 'v*.*.*'
 
 permissions:
-  contents: write  # Nötig für Release erstellen
+  contents: write
 
 jobs:
   build-windows:
@@ -37,25 +37,55 @@ jobs:
       - name: Upload .exe as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CS2-CFG-Configurator-windows
+          name: CS2-CFG-Configurator-exe
           path: cs2-cfg-configurator/dist/CS2-CFG-Configurator.exe
 
-  release:
-    name: Create GitHub Release
-    needs: build-windows
+  package-zip:
+    name: Package Project ZIP
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download build artifact
+      - name: Create project ZIP
+        run: |
+          ZIP_NAME="cs2-cfg-configurator-${{ github.ref_name }}.zip"
+          zip -r "$ZIP_NAME" cs2-cfg-configurator/ \
+            --exclude "cs2-cfg-configurator/__pycache__/*" \
+            --exclude "cs2-cfg-configurator/dist/*" \
+            --exclude "cs2-cfg-configurator/build/*" \
+            --exclude "cs2-cfg-configurator/*.spec"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CS2-CFG-Configurator-zip
+          path: cs2-cfg-configurator-${{ github.ref_name }}.zip
+
+  release:
+    name: Create GitHub Release
+    needs: [build-windows, package-zip]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download EXE artifact
         uses: actions/download-artifact@v4
         with:
-          name: CS2-CFG-Configurator-windows
+          name: CS2-CFG-Configurator-exe
           path: dist/
 
-      - name: Create Release & Upload EXE
+      - name: Download ZIP artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: CS2-CFG-Configurator-zip
+          path: dist/
+
+      - name: Create Release & Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           name: "CS2 CFG Configurator ${{ github.ref_name }}"
@@ -63,11 +93,25 @@ jobs:
           body: |
             ## 🎮 CS2 CFG Configurator ${{ github.ref_name }}
 
-            ### 📥 Installation
-            1. `CS2-CFG-Configurator.exe` herunterladen
-            2. Starten – kein Python oder pip nötig!
+            ### 📥 Downloads
 
-            ### 📝 Lizenz
+            | Datei | Für wen? |
+            |---|---|
+            | `CS2-CFG-Configurator.exe` | Normale Nutzer – einfach starten, kein Python nötig |
+            | `cs2-cfg-configurator-${{ github.ref_name }}.zip` | Entwickler / Quellcode mit Abhängigkeiten |
+
+            ### 🚀 EXE starten
+            Einfach `CS2-CFG-Configurator.exe` herunterladen und ausführen.
+
+            ### 📦 ZIP installieren
+            ```bash
+            pip install -r requirements.txt
+            python main.py
+            ```
+
+            ### 📄 Lizenz
             CC BY-NC 4.0 – keine kommerzielle Nutzung ohne Erlaubnis.
-          files: dist/CS2-CFG-Configurator.exe
+          files: |
+            dist/CS2-CFG-Configurator.exe
+            dist/cs2-cfg-configurator-${{ github.ref_name }}.zip
           token: ${{ secrets.GITHUB_TOKEN }}

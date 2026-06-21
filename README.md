@@ -7,25 +7,30 @@
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/UI-PySide6%20%28Qt6%29-green?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightblue)]()
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightblue)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Stars](https://img.shields.io/github/stars/vsvito420/cs2-cfg-configurator?style=social)](https://github.com/vsvito420/cs2-cfg-configurator/stargazers)
+[![Latest Release](https://img.shields.io/github/v/release/vsvito420/cs2-cfg-configurator?include_prereleases&label=Release)](https://github.com/vsvito420/cs2-cfg-configurator/releases/latest)
 
 ---
 
 ## ⬇️ Download
 
-> **Releases kommen bald!** Bis dahin kannst du das Projekt direkt als ZIP herunterladen:
+[![Download EXE](https://img.shields.io/badge/Download-Windows%20EXE-blue?style=for-the-badge&logo=windows)](https://github.com/vsvito420/cs2-cfg-configurator/releases/latest/download/CS2-CFG-Configurator.exe)
+[![Download ZIP](https://img.shields.io/badge/Download-Projekt%20ZIP-grey?style=for-the-badge&logo=github)](https://github.com/vsvito420/cs2-cfg-configurator/releases/latest)
 
-[![Download ZIP](https://img.shields.io/badge/Download-v0.1.0%20ZIP-blue?style=for-the-badge&logo=github)](https://github.com/vsvito420/cs2-cfg-configurator/releases/download/v0.1.0/cs2-cfg-configurator-v0.1.0.zip)
+| | Für wen? |
+|---|---|
+| **EXE** | Normale Nutzer – einfach starten, kein Python nötig 🟢 |
+| **ZIP** | Entwickler – Quellcode + selbst starten via Python |
 
-_Direkter Download des aktuellen Release-Assets – kein `git clone` nötig._
+_Beide Dateien werden automatisch bei jedem Release gebaut und hochgeladen._
 
 </div>
 
 ---
 
-## 🚀 Schnellstart
+## 🚀 Schnellstart (aus ZIP / Quellcode)
 
 ```bash
 git clone https://github.com/vsvito420/cs2-cfg-configurator.git
@@ -45,7 +50,7 @@ Beiträge sind herzlich willkommen! Bitte beachte:
 - Kein kommerzieller Einsatz ohne schriftliche Erlaubnis (→ [Lizenz](#lizenz))
 - Für größere Änderungen erst ein **Issue** öffnen und besprechen
 
-Details findest du in [`CONTRIBUTING.md`](CONTRIBUTING.md) _(coming soon)_.
+Details findest du in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 
