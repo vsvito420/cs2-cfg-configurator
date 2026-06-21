@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎮 CS2 CFG Configurator
+# 🎮 [CS2 CFG Configurator](https://vsvito420.github.io/cs2-cfg-configurator/demo.html)
 
 **Ein modulares Desktop-Tool (Python / PySide6) zum Erstellen, Bearbeiten und Verwalten von CS2-Konfigurationsdateien.**
 
