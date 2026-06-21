@@ -31,7 +31,7 @@ I tried my best to explain it in github / docs / SECURITY.md
 |---|---|
 | **EXE** | Normale Nutzer – einfach starten, kein Python nötig 🟢 |
 | **ZIP** | Entwickler – Quellcode + selbst starten via Python |
-| **🌐 [Web Demo](https://vsvito420.github.io/cs2-cfg-configurator/demo/demo.html)** | Quick-Port im Browser – nur eingeschränkt nutzbar (siehe unten) 🟡 |
+| **🌐 [Web Demo](https://vsvito420.github.io/cs2-cfg-configurator/docs/demo/demo.html)** | Quick-Port im Browser – nur eingeschränkt nutzbar (siehe unten) 🟡 |
 
 _Beide Dateien werden automatisch bei jedem Release gebaut und hochgeladen._
 
