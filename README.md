@@ -17,9 +17,9 @@
 
 > **Releases kommen bald!** Bis dahin kannst du das Projekt direkt als ZIP herunterladen:
 
-[![Download ZIP](https://img.shields.io/badge/Download-Source%20ZIP-blue?style=for-the-badge&logo=github)](https://github.com/vsvito420/cs2-cfg-configurator/archive/refs/heads/main.zip)
+[![Download ZIP](https://img.shields.io/badge/Download-v0.1.0%20ZIP-blue?style=for-the-badge&logo=github)](https://github.com/vsvito420/cs2-cfg-configurator/releases/download/v0.1.0/cs2-cfg-configurator-v0.1.0.zip)
 
-_Sobald ein offizieller Release verfügbar ist, erscheint hier ein direkter Installer-Link._
+_Direkter Download des aktuellen Release-Assets – kein `git clone` nötig._
 
 </div>
 
