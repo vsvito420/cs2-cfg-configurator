@@ -6,16 +6,12 @@ from pathlib import Path
 
 
 def find_steam_userdata() -> Path | None:
-    """Sucht Steam userdata auf Windows, macOS, Linux – inkl. aller Laufwerke."""
     candidates = []
-
     if sys.platform == "win32":
-        # Standard-Pfade
         for env in ("PROGRAMFILES(X86)", "PROGRAMFILES", "LOCALAPPDATA"):
             base = os.environ.get(env, "")
             if base:
                 candidates.append(Path(base) / "Steam" / "userdata")
-        # Alle Laufwerke (fuer Steam Libraries auf anderen Festplatten)
         for drive in string.ascii_uppercase:
             for sub in ("SteamLibrary", "Steam", "Games\\Steam"):
                 candidates.append(Path(f"{drive}:\\") / sub / "userdata")
@@ -24,7 +20,6 @@ def find_steam_userdata() -> Path | None:
     else:
         for base in (Path.home() / ".steam" / "steam", Path.home() / ".local" / "share" / "Steam"):
             candidates.append(base / "userdata")
-
     for p in candidates:
         if p.exists():
             return p
@@ -32,7 +27,6 @@ def find_steam_userdata() -> Path | None:
 
 
 def find_cs2_steam_ids(userdata: Path) -> list[str]:
-    """Gibt alle Steam-IDs zurueck die CS2 (AppID 730) installiert haben."""
     ids = []
     if not userdata or not userdata.exists():
         return ids
@@ -43,12 +37,44 @@ def find_cs2_steam_ids(userdata: Path) -> list[str]:
     return ids
 
 
+def get_account_name(userdata: Path, steam_id: str) -> str:
+    """
+    Versucht den Steam-Accountnamen aus localconfig.vdf zu lesen.
+    Gibt den Namen zurueck oder '' wenn nicht gefunden.
+    """
+    # localconfig.vdf liegt in userdata/<id>/config/localconfig.vdf
+    cfg = userdata / steam_id / "config" / "localconfig.vdf"
+    if not cfg.exists():
+        return ""
+    try:
+        with cfg.open(encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                stripped = line.strip().lower()
+                # Suche nach: "PersonaName"	"vsvito420"
+                if '"personaname"' in stripped:
+                    parts = line.split('"')
+                    # parts: ["", "PersonaName", "\t", "vsvito420", ...]
+                    if len(parts) >= 4:
+                        return parts[3]
+    except Exception:
+        pass
+    # Fallback: name aus convars
+    convars_file = userdata / steam_id / "730" / "local" / "cfg" / "cs2_user_convars_0_slot0.vcfg"
+    if convars_file.exists():
+        try:
+            with convars_file.open(encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if '"name"' in line.lower():
+                        parts = line.split('"')
+                        if len(parts) >= 4:
+                            return parts[3]
+        except Exception:
+            pass
+    return ""
+
+
 def parse_vcfg(filepath: Path) -> dict[str, str]:
-    """
-    Parst .vcfg Dateien (convars & keys).
-    Format: setcommand "key" "value"
-    Fallback: erkennt auch einfaches key "value" Format.
-    """
     result = {}
     if not filepath or not filepath.exists():
         return result
@@ -57,12 +83,10 @@ def parse_vcfg(filepath: Path) -> dict[str, str]:
             line = line.strip()
             if not line or line.startswith("//"):
                 continue
-            # Format: setcommand "key" "value"
             if line.startswith("setcommand"):
                 parts = line.split('"')
                 if len(parts) >= 4:
                     result[parts[1]] = parts[3]
-            # Fallback: "key" "value"
             elif line.startswith('"'):
                 parts = line.split('"')
                 if len(parts) >= 4:
@@ -71,10 +95,6 @@ def parse_vcfg(filepath: Path) -> dict[str, str]:
 
 
 def parse_video(filepath: Path) -> dict[str, str]:
-    """
-    Parst cs2_video.txt.
-    Format: "key" "value" (mit Anfuehrungszeichen) oder key value
-    """
     result = {}
     if not filepath or not filepath.exists():
         return result
@@ -83,12 +103,10 @@ def parse_video(filepath: Path) -> dict[str, str]:
             line = line.strip()
             if not line or line.startswith("//") or line in ("{", "}"):
                 continue
-            # Format mit Anfuehrungszeichen: "key"\t"value"
             if line.startswith('"'):
                 parts = line.split('"')
                 if len(parts) >= 4:
                     result[parts[1]] = parts[3]
-            # Format ohne: key value
             else:
                 parts = line.split()
                 if len(parts) >= 2:
@@ -97,11 +115,18 @@ def parse_video(filepath: Path) -> dict[str, str]:
 
 
 def read_all_for_id(userdata: Path, steam_id: str) -> dict:
-    """Liest convars, keys und video fuer eine Steam-ID."""
     base = userdata / steam_id / "730" / "local" / "cfg"
+    convars = parse_vcfg(base / "cs2_user_convars_0_slot0.vcfg")
+    keys    = parse_vcfg(base / "cs2_user_keys_0_slot0.vcfg")
+    video   = parse_video(base / "cs2_video.txt")
+    name    = get_account_name(userdata, steam_id)
     return {
-        "convars": parse_vcfg(base / "cs2_user_convars_0_slot0.vcfg"),
-        "keys":    parse_vcfg(base / "cs2_user_keys_0_slot0.vcfg"),
-        "video":   parse_video(base / "cs2_video.txt"),
+        "convars": convars,
+        "keys":    keys,
+        "video":   video,
+        "name":    name,
         "base_path": str(base),
+        "convars_file": str(base / "cs2_user_convars_0_slot0.vcfg"),
+        "keys_file":    str(base / "cs2_user_keys_0_slot0.vcfg"),
+        "video_file":   str(base / "cs2_video.txt"),
     }
