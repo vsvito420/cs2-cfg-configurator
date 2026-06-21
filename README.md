@@ -10,6 +10,8 @@
 I tried my best to explain it in github / docs / SECURITY.md 
 → [Sicherheitsanalyse lesen (docs/SECURITY.md)](docs/SECURITY.md)
 
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-0%2F72%20clean-brightgreen?logo=virustotal)](https://www.virustotal.com/gui/file/40709856626afb9fc09a8995094d3eb38af55a577570a702f41175c691d170df)
+
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
