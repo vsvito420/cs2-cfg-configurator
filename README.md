@@ -12,6 +12,7 @@ I tried my best to explain it in github / docs / SECURITY.md
 
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/vsvito420/cs2-cfg-configurator)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![PySide6](https://img.shields.io/badge/UI-PySide6%20%28Qt6%29-green?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightblue)]()
