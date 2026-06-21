@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS2 CFG Configurator – Web Demo</title>
+  <style>
+    :root {
+      --ctp-base:    #1e1e2e;
+      --ctp-mantle:  #181825;
+      --ctp-crust:   #11111b;
+      --ctp-surface0:#313244;
+      --ctp-surface1:#45475a;
+      --ctp-surface2:#585b70;
+      --ctp-overlay0:#6c7086;
+      --ctp-subtext0:#a6adc8;
+      --ctp-subtext1:#bac2de;
+      --ctp-text:    #cdd6f4;
+      --ctp-lavender:#b4befe;
+      --ctp-blue:    #89b4fa;
+      --ctp-sapphire:#74c7ec;
+      --ctp-sky:     #89dceb;
+      --ctp-teal:    #94e2d5;
+      --ctp-green:   #a6e3a1;
+      --ctp-yellow:  #f9e2af;
+      --ctp-peach:   #fab387;
+      --ctp-maroon:  #eba0ac;
+      --ctp-red:     #f38ba8;
+      --ctp-mauve:   #cba6f7;
+      --ctp-pink:    #f5c2e7;
+      --ctp-flamingo:#f2cdcd;
+      --ctp-rosewater:#f5e0dc;
+
+      --bg:      var(--ctp-base);
+      --surface: var(--ctp-mantle);
+      --border:  var(--ctp-surface0);
+      --accent:  var(--ctp-mauve);
+      --accent2: var(--ctp-blue);
+      --text:    var(--ctp-text);
+      --muted:   var(--ctp-subtext0);
+      --radius:  10px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(24,24,37,0.92);
+      backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); }
+    .nav-logo span { color: var(--text); }
+    nav ul { list-style: none; display: flex; gap: 1.5rem; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
+    nav a:hover { color: var(--accent); }
+    .nav-badge {
+      background: rgba(203,166,247,0.12); color: var(--accent);
+      border: 1px solid rgba(203,166,247,0.3);
+      border-radius: 999px; padding: 0.2rem 0.7rem;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* LAYOUT */
+    .app-shell {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 54px);
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--ctp-crust);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar-section { padding: 1rem 0.5rem 0.5rem; }
+    .sidebar-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      padding: 0 0.6rem 0.5rem;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--ctp-subtext1);
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .sidebar-item:hover { background: var(--ctp-surface0); color: var(--text); }
+    .sidebar-item.active { background: rgba(203,166,247,0.15); color: var(--accent); }
+    .sidebar-item .icon { font-size: 1rem; width: 1.2rem; text-align: center; }
+
+    /* FOLDER PICKER */
+    .folder-bar {
+      padding: 0.75rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--ctp-mantle);
+    }
+    .folder-bar p { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.4rem; }
+    .btn-folder {
+      display: flex; align-items: center; gap: 0.5rem;
+      width: 100%;
+      background: var(--ctp-surface0);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-folder:hover { border-color: var(--accent); }
+    #folder-name { font-size: 0.75rem; color: var(--ctp-green); margin-top: 0.35rem; word-break: break-all; }
+
+    /* MAIN PANEL */
+    .main-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+    }
+
+    /* TABS / PAGE PANELS */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      color: var(--ctp-lavender);
+    }
+    .panel-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* BIND GENERATOR */
+    .bind-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: 160px 1fr auto;
+      gap: 0.75rem;
+      align-items: end;
+    }
+    label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 0.35rem; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      background: var(--ctp-surface0);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.5rem 0.7rem;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    select option { background: var(--ctp-surface0); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: 6px;
+      font-weight: 600; font-size: 0.88rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--ctp-mauve), var(--ctp-blue));
+      color: var(--ctp-crust);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(203,166,247,0.25); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger {
+      background: transparent; color: var(--ctp-red);
+      border: 1px solid rgba(243,139,168,0.3);
+      padding: 0.4rem 0.7rem;
+      font-size: 0.78rem;
+    }
+    .btn-danger:hover { background: rgba(243,139,168,0.1); }
+
+    /* BIND LIST */
+    .bind-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+    .bind-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.65rem 1rem;
+      display: flex; align-items: center; gap: 1rem;
+      font-size: 0.88rem;
+      font-family: 'Consolas', monospace;
+      color: var(--ctp-text);
+    }
+    .bind-key {
+      background: var(--ctp-surface0);
+      color: var(--ctp-peach);
+      border-radius: 4px;
+      padding: 0.15rem 0.55rem;
+      font-weight: 700;
+      min-width: 60px;
+      text-align: center;
+    }
+    .bind-cmd { flex: 1; color: var(--ctp-blue); }
+    .bind-empty { color: var(--muted); font-style: italic; font-size: 0.85rem; text-align: center; padding: 1.5rem; }
+
+    /* CFG PREVIEW */
+    .cfg-preview {
+      background: var(--ctp-crust);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.82rem;
+      color: var(--ctp-green);
+      min-height: 120px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    /* SETTINGS EDITOR */
+    .settings-search {
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .settings-search input {
+      padding-left: 2.2rem;
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.7rem; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+    .settings-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .settings-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid rgba(49,50,68,0.5);
+      vertical-align: middle;
+    }
+    .settings-table tr:hover td { background: rgba(49,50,68,0.4); }
+    .cvar-name { font-family: 'Consolas', monospace; color: var(--ctp-blue); }
+    .cvar-default { font-family: 'Consolas', monospace; color: var(--ctp-peach); }
+    .cvar-range { font-size: 0.75rem; color: var(--muted); }
+    .settings-table input[type="text"] {
+      width: 100px;
+      padding: 0.3rem 0.5rem;
+      font-family: 'Consolas', monospace;
+    }
+
+    /* EXPORT PANEL */
+    .export-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .export-info p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; }
+    .export-path {
+      font-family: 'Consolas', monospace;
+      font-size: 0.82rem;
+      color: var(--ctp-peach);
+      background: var(--ctp-crust);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.4rem 0.7rem;
+      margin-bottom: 0.75rem;
+    }
+    .alert {
+      border-radius: 6px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.83rem;
+      margin-bottom: 0.75rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .alert-info { background: rgba(137,196,250,0.1); border: 1px solid rgba(137,196,250,0.25); color: var(--ctp-blue); }
+    .alert-success { background: rgba(166,227,161,0.1); border: 1px solid rgba(166,227,161,0.25); color: var(--ctp-green); }
+    .alert-warn { background: rgba(249,226,175,0.1); border: 1px solid rgba(249,226,175,0.25); color: var(--ctp-yellow); }
+
+    /* STATUSBAR */
+    .statusbar {
+      background: linear-gradient(90deg, var(--ctp-mauve), var(--ctp-blue));
+      color: var(--ctp-crust);
+      font-size: 0.75rem;
+      padding: 0.25rem 1rem;
+      display: flex; align-items: center; gap: 1rem;
+      font-weight: 600;
+    }
+    .statusbar span { opacity: 0.85; }
+
+    /* KEYBOARD VISUAL */
+    .keyboard-hint {
+      display: flex; gap: 0.35rem; align-items: center;
+      font-size: 0.8rem; color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    kbd {
+      background: var(--ctp-surface0);
+      border: 1px solid var(--ctp-surface2);
+      border-radius: 4px;
+      padding: 0.15rem 0.45rem;
+      font-size: 0.78rem;
+      color: var(--ctp-text);
+      font-family: inherit;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .app-shell { flex-direction: column; height: auto; }
+      .sidebar { width: 100%; min-width: unset; height: auto; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
+      .bind-form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-logo">CS2 <span>CFG Configurator</span></div>
+    <ul>
+      <li><a href="index.html">← Back</a></li>
+      <li><span class="nav-badge">Web Demo</span></li>
+      <li><a href="https://github.com/vsvito420/cs2-cfg-configurator">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <!-- Folder Picker -->
+      <div class="folder-bar">
+        <p>CS2 Config Folder</p>
+        <button class="btn-folder" id="btn-pick-folder" onclick="pickFolder()">
+          <span>📁</span> <span>Select Folder…</span>
+        </button>
+        <div id="folder-name">No folder selected</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Tools</div>
+        <div class="sidebar-item active" onclick="switchPanel('binds', this)">
+          <span class="icon">⌨️</span> Bind Generator
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('settings', this)">
+          <span class="icon">🔧</span> Settings Editor
+        </div>
+        <div class="sidebar-item" onclick="switchPanel('export', this)">
+          <span class="icon">💾</span> Export CFG
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Info</div>
+        <div class="sidebar-item" onclick="switchPanel('about', this)">
+          <span class="icon">ℹ️</span> About
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-panel">
+
+      <!-- ===== BIND GENERATOR ===== -->
+      <div class="panel active" id="panel-binds">
+        <div class="panel-title">⌨️ Bind Generator</div>
+        <div class="panel-sub">Create key bindings visually and export them to your CS2 config.</div>
+
+        <div class="keyboard-hint">
+          Press <kbd>Add Bind</kbd> below or type your key and command manually.
+        </div>
+
+        <div class="bind-form">
+          <div>
+            <label for="bind-key-input">Key</label>
+            <input type="text" id="bind-key-input" placeholder="e.g. F1, MOUSE4, KP_5" maxlength="20" />
+          </div>
+          <div>
+            <label for="bind-cmd-input">Command</label>
+            <input type="text" id="bind-cmd-input" placeholder='e.g. buy ak47; buy m4a1 or "toggle cl_righthand 0 1"' />
+          </div>
+          <button class="btn btn-primary" onclick="addBind()">＋ Add Bind</button>
+        </div>
+
+        <!-- Quick presets -->
+        <div style="margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:0.4rem;">
+          <span style="font-size:0.78rem;color:var(--muted);align-self:center">Presets:</span>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('F1','buy ak47; buy m4a4')">AK/M4 Buy</button>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('F2','buy vesthelm; buy vest; buy flashbang; buy smokegrenade; buy molotov; buy incgrenade; buy defuser')">Full Equip</button>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('MOUSE4','toggle cl_righthand 0 1')">Switch Hand</button>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('KP_MINUS','toggle voice_enable 0 1')">Mute Voice</button>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="addPreset('F3','noclip')">Noclip</button>
+        </div>
+
+        <div class="bind-list" id="bind-list">
+          <div class="bind-empty">No binds yet. Add your first bind above.</div>
+        </div>
+
+        <div style="margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.82rem;color:var(--muted);">CFG Preview</span>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="copyBindsCfg()">📋 Copy</button>
+        </div>
+        <div class="cfg-preview" id="binds-preview">// No binds yet</div>
+      </div>
+
+      <!-- ===== SETTINGS EDITOR ===== -->
+      <div class="panel" id="panel-settings">
+        <div class="panel-title">🔧 Settings Editor</div>
+        <div class="panel-sub">Browse CS2 console variables, tweak values, and include them in your export.</div>
+
+        <div class="settings-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="settings-search" placeholder="Search convar… e.g. sensitivity, fps, voice" oninput="filterSettings()" />
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th>ConVar</th>
+                <th>Category</th>
+                <th>Default</th>
+                <th>Range</th>
+                <th>Your Value</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="settings-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== EXPORT ===== -->
+      <div class="panel" id="panel-export">
+        <div class="panel-title">💾 Export CFG</div>
+        <div class="panel-sub">Generate your final <code style="background:var(--ctp-surface0);color:var(--ctp-peach);padding:0.1rem 0.4rem;border-radius:4px">.cfg</code> file and save it directly to your CS2 folder.</div>
+
+        <div class="export-info">
+          <p>Your config will be written to:</p>
+          <div class="export-path" id="export-path-display">📁 No folder selected — pick your CS2 cfg folder in the sidebar first.</div>
+          <p>The generated file will be named <code style="color:var(--ctp-peach)">autoexec.cfg</code>. CS2 loads this on startup if you add <code style="color:var(--ctp-peach)">+exec autoexec</code> to your launch options.</p>
+        </div>
+
+        <div class="alert alert-info" id="api-support-note">
+          ℹ️ <strong>File System Access API</strong> — your browser supports direct file writing. Select your CS2 <code>cfg</code> folder in the sidebar to enable saving.
+        </div>
+
+        <div style="margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.82rem;color:var(--muted);">Full CFG Preview</span>
+          <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.3rem 0.7rem" onclick="copyCfg()">📋 Copy All</button>
+        </div>
+        <div class="cfg-preview" id="full-cfg-preview">// Generated CFG will appear here</div>
+
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.75rem;">
+          <button class="btn btn-primary" onclick="saveCfg()">💾 Save to CS2 Folder</button>
+          <button class="btn btn-ghost" onclick="downloadCfg()">⬇️ Download autoexec.cfg</button>
+        </div>
+        <div id="save-status" style="margin-top:0.75rem;"></div>
+      </div>
+
+      <!-- ===== ABOUT ===== -->
+      <div class="panel" id="panel-about">
+        <div class="panel-title">ℹ️ About this Demo</div>
+        <div class="panel-sub">CS2 CFG Configurator — Web Edition</div>
+
+        <div class="export-info">
+          <p>This is the <strong>browser-only demo</strong> of the CS2 CFG Configurator project. It uses the <strong>File System Access API</strong> to let you pick your CS2 <code style="color:var(--ctp-peach)">cfg</code> folder and write files directly — no server, no upload.</p>
+
+          <p style="margin-top:0.75rem;"><strong>What works in this web demo:</strong></p>
+          <ul style="margin:0.5rem 0 0.75rem 1.25rem;color:var(--muted);font-size:0.88rem;line-height:1.8;">
+            <li>✅ Bind Generator (visual, with presets)</li>
+            <li>✅ Settings Editor (browse &amp; tweak ConVars)</li>
+            <li>✅ CFG Export → download or save directly to folder</li>
+            <li>✅ Works 100% offline once loaded</li>
+          </ul>
+
+          <p style="margin-top:0.5rem;"><strong>What requires the Python app:</strong></p>
+          <ul style="margin:0.5rem 0 0.75rem 1.25rem;color:var(--muted);font-size:0.88rem;line-height:1.8;">
+            <li>🔒 Auto-detecting your Steam/CS2 installation path</li>
+            <li>🔒 Reading existing <code>.cfg</code> files to import settings</li>
+            <li>🔒 Profile management across sessions</li>
+          </ul>
+
+          <p style="margin-top:0.5rem;"><strong>Browser compatibility:</strong> Chrome 86+, Edge 86+. Firefox and Safari do not support File System Access API — use the download button instead.</p>
+        </div>
+
+        <a href="https://github.com/vsvito420/cs2-cfg-configurator" class="btn btn-primary" style="margin-top:0.5rem">⭐ Star on GitHub</a>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="statusbar">
+    <span id="statusbar-folder">📁 No folder</span>
+    <span>|</span>
+    <span id="statusbar-binds">0 binds</span>
+    <span>|</span>
+    <span id="statusbar-settings">0 settings changed</span>
+    <span>|</span>
+    <span>CS2 CFG Configurator – Web Demo</span>
+  </div>
+
+<script>
+// =====================================================================
+// DATA — CS2 ConVars (subset, expandable)
+// =====================================================================
+const CONVARS = [
+  { name: 'sensitivity',        cat: 'Mouse',    def: '2.5',   range: '0.1 – 10',    desc: 'Mouse sensitivity' },
+  { name: 'zoom_sensitivity_ratio_mouse', cat: 'Mouse', def: '1.0', range: '0.1 – 5', desc: 'Scoped sensitivity ratio' },
+  { name: 'm_rawinput',         cat: 'Mouse',    def: '1',     range: '0 / 1',       desc: 'Use raw mouse input' },
+  { name: 'm_mouseaccel1',      cat: 'Mouse',    def: '0',     range: '0 – 5',       desc: 'Mouse acceleration (lower threshold)' },
+  { name: 'm_mouseaccel2',      cat: 'Mouse',    def: '0',     range: '0 – 5',       desc: 'Mouse acceleration (upper threshold)' },
+  { name: 'fps_max',            cat: 'Video',    def: '400',   range: '0 – 999',     desc: 'Max frames per second (0 = unlimited)' },
+  { name: 'fps_max_ui',         cat: 'Video',    def: '60',    range: '0 – 999',     desc: 'Max FPS in menus' },
+  { name: 'r_dynamic',          cat: 'Video',    def: '0',     range: '0 / 1',       desc: 'Dynamic lighting' },
+  { name: 'mat_queue_mode',     cat: 'Video',    def: '-1',    range: '-1 / 0 / 2',  desc: 'Multicore rendering mode' },
+  { name: 'cl_showfps',         cat: 'HUD',      def: '0',     range: '0 – 5',       desc: 'Show FPS counter' },
+  { name: 'net_graph',          cat: 'HUD',      def: '0',     range: '0 / 1',       desc: 'Show net graph' },
+  { name: 'hud_scaling',        cat: 'HUD',      def: '0.85',  range: '0.5 – 0.95',  desc: 'HUD element scale' },
+  { name: 'cl_hud_color',       cat: 'HUD',      def: '0',     range: '0 – 10',      desc: 'HUD color preset' },
+  { name: 'cl_radar_scale',     cat: 'Radar',    def: '0.7',   range: '0.25 – 1',    desc: 'Radar map scale' },
+  { name: 'cl_radar_always_centered', cat: 'Radar', def: '0', range: '0 / 1',       desc: 'Keep player centered on radar' },
+  { name: 'cl_righthand',       cat: 'View',     def: '1',     range: '0 / 1',       desc: 'Weapon hand (1=right, 0=left)' },
+  { name: 'viewmodel_fov',      cat: 'View',     def: '68',    range: '54 – 68',     desc: 'Viewmodel field of view' },
+  { name: 'viewmodel_offset_x', cat: 'View',     def: '0',     range: '-2 – 2.5',   desc: 'Viewmodel X offset' },
+  { name: 'viewmodel_offset_y', cat: 'View',     def: '0',     range: '-2 – 2',      desc: 'Viewmodel Y offset' },
+  { name: 'viewmodel_offset_z', cat: 'View',     def: '-2',    range: '-2 – 2',      desc: 'Viewmodel Z offset' },
+  { name: 'cl_bob_lower_amt',   cat: 'View',     def: '21',    range: '5 – 30',      desc: 'Weapon bob lower amount' },
+  { name: 'cl_bobamt_lat',      cat: 'View',     def: '0.4',   range: '0.1 – 2',     desc: 'Weapon lateral bob' },
+  { name: 'cl_bobamt_vert',     cat: 'View',     def: '0.25',  range: '0.1 – 2',     desc: 'Weapon vertical bob' },
+  { name: 'cl_bobcycle',        cat: 'View',     def: '0.98',  range: '0.1 – 2',     desc: 'Weapon bob cycle speed' },
+  { name: 'voice_enable',       cat: 'Audio',    def: '1',     range: '0 / 1',       desc: 'Enable voice chat' },
+  { name: 'voice_scale',        cat: 'Audio',    def: '1.0',   range: '0 – 1',       desc: 'Voice chat volume' },
+  { name: 'volume',             cat: 'Audio',    def: '0.5',   range: '0 – 1',       desc: 'Master volume' },
+  { name: 'snd_musicvolume',    cat: 'Audio',    def: '0.1',   range: '0 – 1',       desc: 'Music volume' },
+  { name: 'cl_mute_enemy_team', cat: 'Audio',    def: '0',     range: '0 / 1',       desc: 'Mute enemy team voice' },
+  { name: 'cl_interp_ratio',    cat: 'Network',  def: '2',     range: '0 – 2',       desc: 'Interpolation ratio' },
+  { name: 'cl_interp',          cat: 'Network',  def: '0.015625', range: '0 – 0.5',  desc: 'Interpolation time (s)' },
+  { name: 'rate',               cat: 'Network',  def: '786432', range: '1 – 1048576', desc: 'Network data rate (bytes/s)' },
+  { name: 'cl_updaterate',      cat: 'Network',  def: '128',   range: '10 – 128',    desc: 'Server update rate' },
+  { name: 'cl_cmdrate',         cat: 'Network',  def: '128',   range: '10 – 128',    desc: 'Client command rate' },
+  { name: 'cl_autohelp',        cat: 'Misc',     def: '0',     range: '0 / 1',       desc: 'Auto help tips' },
+  { name: 'gameinstructor_enable', cat: 'Misc',  def: '0',     range: '0 / 1',       desc: 'In-game instructor lessons' },
+  { name: 'cl_autowepswitch',   cat: 'Misc',     def: '0',     range: '0 / 1',       desc: 'Auto switch to new weapon' },
+  { name: 'cl_teamid_overhead_always', cat: 'Misc', def: '1', range: '0 – 2',       desc: 'Always show teammate IDs overhead' },
+];
+
+// =====================================================================
+// STATE
+// =====================================================================
+let binds = [];           // {key, cmd}
+let settingChanges = {};  // convar → value
+let dirHandle = null;     // FileSystemDirectoryHandle
+
+// =====================================================================
+// FOLDER PICKER (File System Access API)
+// =====================================================================
+async function pickFolder() {
+  if (!('showDirectoryPicker' in window)) {
+    alert('Your browser does not support the File System Access API.\nUse Chrome or Edge 86+.\n\nYou can still use the Download button to get your CFG.');
+    return;
+  }
+  try {
+    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    document.getElementById('folder-name').textContent = '✅ ' + dirHandle.name;
+    document.getElementById('statusbar-folder').textContent = '📁 ' + dirHandle.name;
+    document.getElementById('export-path-display').textContent =
+      '📁 ' + dirHandle.name + '/autoexec.cfg';
+    document.getElementById('api-support-note').className = 'alert alert-success';
+    document.getElementById('api-support-note').innerHTML =
+      '✅ Folder selected! Click <strong>Save to CS2 Folder</strong> to write the file.';
+  } catch (e) {
+    if (e.name !== 'AbortError') console.error(e);
+  }
+}
+
+// =====================================================================
+// PANEL SWITCHER
+// =====================================================================
+function switchPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'export') refreshExportPreview();
+}
+
+// =====================================================================
+// BIND GENERATOR
+// =====================================================================
+function addBind() {
+  const key = document.getElementById('bind-key-input').value.trim().toUpperCase();
+  const cmd = document.getElementById('bind-cmd-input').value.trim();
+  if (!key || !cmd) { alert('Please enter both a key and a command.'); return; }
+  binds.push({ key, cmd });
+  document.getElementById('bind-key-input').value = '';
+  document.getElementById('bind-cmd-input').value = '';
+  renderBinds();
+}
+
+function addPreset(key, cmd) {
+  binds.push({ key: key.toUpperCase(), cmd });
+  renderBinds();
+}
+
+function removeBind(i) {
+  binds.splice(i, 1);
+  renderBinds();
+}
+
+function renderBinds() {
+  const list = document.getElementById('bind-list');
+  const preview = document.getElementById('binds-preview');
+  if (binds.length === 0) {
+    list.innerHTML = '<div class="bind-empty">No binds yet. Add your first bind above.</div>';
+    preview.textContent = '// No binds yet';
+  } else {
+    list.innerHTML = binds.map((b, i) =>
+      `<div class="bind-row">
+        <span class="bind-key">${escHtml(b.key)}</span>
+        <span class="bind-cmd">bind "${escHtml(b.key)}" "${escHtml(b.cmd)}"</span>
+        <button class="btn btn-danger" onclick="removeBind(${i})">✕ Remove</button>
+      </div>`
+    ).join('');
+    preview.textContent = binds.map(b => `bind "${b.key}" "${b.cmd}"`).join('\n');
+  }
+  document.getElementById('statusbar-binds').textContent = binds.length + ' bind' + (binds.length !== 1 ? 's' : '');
+}
+
+function copyBindsCfg() {
+  const text = binds.map(b => `bind "${b.key}" "${b.cmd}"`).join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Binds copied!'));
+}
+
+// =====================================================================
+// SETTINGS EDITOR
+// =====================================================================
+function buildSettingsTable(filter = '') {
+  const q = filter.toLowerCase();
+  const rows = CONVARS.filter(c =>
+    !q || c.name.includes(q) || c.cat.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
+  );
+  const tbody = document.getElementById('settings-tbody');
+  tbody.innerHTML = rows.map(c => `
+    <tr>
+      <td class="cvar-name">${escHtml(c.name)}</td>
+      <td style="color:var(--muted);font-size:0.8rem">${escHtml(c.cat)}</td>
+      <td class="cvar-default">${escHtml(c.def)}</td>
+      <td class="cvar-range">${escHtml(c.range)}</td>
+      <td>
+        <input type="text" placeholder="${escHtml(c.def)}"
+          value="${escHtml(settingChanges[c.name] ?? '')}"
+          oninput="setSetting('${escHtml(c.name)}', this.value)"
+          style="width:100px" />
+      </td>
+      <td style="color:var(--muted);font-size:0.8rem">${escHtml(c.desc)}</td>
+    </tr>
+  `).join('');
+}
+
+function filterSettings() {
+  buildSettingsTable(document.getElementById('settings-search').value);
+}
+
+function setSetting(name, val) {
+  if (val.trim() === '') {
+    delete settingChanges[name];
+  } else {
+    settingChanges[name] = val.trim();
+  }
+  const count = Object.keys(settingChanges).length;
+  document.getElementById('statusbar-settings').textContent = count + ' setting' + (count !== 1 ? 's' : '') + ' changed';
+}
+
+// =====================================================================
+// CFG GENERATION
+// =====================================================================
+function buildCfg() {
+  const lines = [];
+  lines.push('// =============================================');
+  lines.push('// autoexec.cfg — generated by CS2 CFG Configurator Web Demo');
+  lines.push('// https://vsvito420.github.io/cs2-cfg-configurator/demo.html');
+  lines.push('// Generated: ' + new Date().toLocaleString());
+  lines.push('// =============================================');
+  lines.push('');
+
+  if (Object.keys(settingChanges).length > 0) {
+    lines.push('// --- Settings ---');
+    for (const [k, v] of Object.entries(settingChanges)) {
+      lines.push(`${k} ${v}`);
+    }
+    lines.push('');
+  }
+
+  if (binds.length > 0) {
+    lines.push('// --- Binds ---');
+    for (const b of binds) {
+      lines.push(`bind "${b.key}" "${b.cmd}"`);
+    }
+    lines.push('');
+  }
+
+  lines.push('echo "[autoexec] Config loaded ✓"');
+  return lines.join('\n');
+}
+
+function refreshExportPreview() {
+  document.getElementById('full-cfg-preview').textContent = buildCfg();
+}
+
+function copyCfg() {
+  navigator.clipboard.writeText(buildCfg()).then(() => showToast('CFG copied!'));
+}
+
+function downloadCfg() {
+  const blob = new Blob([buildCfg()], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'autoexec.cfg';
+  a.click();
+}
+
+async function saveCfg() {
+  const status = document.getElementById('save-status');
+  if (!dirHandle) {
+    status.innerHTML = '<div class="alert alert-warn">⚠️ No folder selected. Pick your CS2 cfg folder in the sidebar first.</div>';
+    return;
+  }
+  try {
+    const fh = await dirHandle.getFileHandle('autoexec.cfg', { create: true });
+    const w = await fh.createWritable();
+    await w.write(buildCfg());
+    await w.close();
+    status.innerHTML = '<div class="alert alert-success">✅ autoexec.cfg saved to <strong>' + dirHandle.name + '</strong> successfully!</div>';
+  } catch (e) {
+    status.innerHTML = '<div class="alert alert-warn">❌ Error: ' + escHtml(e.message) + '</div>';
+  }
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'2rem', right:'2rem',
+    background:'var(--ctp-green)', color:'var(--ctp-crust)',
+    padding:'0.5rem 1.1rem', borderRadius:'6px',
+    fontWeight:'700', fontSize:'0.88rem', zIndex:'9999',
+    boxShadow:'0 4px 16px rgba(0,0,0,0.4)'
+  });
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// Check API support on load
+if (!('showDirectoryPicker' in window)) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const note = document.getElementById('api-support-note');
+    if (note) {
+      note.className = 'alert alert-warn';
+      note.innerHTML = '⚠️ <strong>File System Access API not supported</strong> — your browser (likely Firefox/Safari) cannot write files directly. Use the <strong>Download</strong> button instead.';
+    }
+  });
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  buildSettingsTable();
+  renderBinds();
+});
+</script>
+</body>
+</html>
