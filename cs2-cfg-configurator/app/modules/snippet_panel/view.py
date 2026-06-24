@@ -1,281 +1,263 @@
-# snippet_panel/view.py
-# UI-Panel: Rohe CFG-Schnipsel (alias, bind, Kommentare) in .cfg-Dateien einfuegen
+import json
 from pathlib import Path
+
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QTextEdit, QComboBox, QFileDialog, QMessageBox,
-    QFrame, QSizePolicy, QGroupBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QPlainTextEdit, QLineEdit, QFrame,
+    QComboBox, QMessageBox
 )
 from PySide6.QtCore import Qt
 
-from app.modules.cfg_editor.snippet_injector import inject_snippet
+SETTINGS_FILE = Path(__file__).parent.parent.parent.parent / "configs" / "app_settings.json"
 
-CONFIGS_ROOT = Path(__file__).parent.parent.parent.parent / "configs"
 
-STYLE_BG      = "#1e1e2e"
-STYLE_SURFACE = "#313244"
-STYLE_TEXT    = "#cdd6f4"
-STYLE_ACCENT  = "#cba6f7"
-STYLE_GREEN   = "#a6e3a1"
-STYLE_SUBTEXT = "#6c7086"
-STYLE_RED     = "#f38ba8"
+def _get_cfg_dir() -> Path | None:
+    """Liest cs2_path aus app_settings.json und gibt den cfg-Ordner zurück."""
+    if SETTINGS_FILE.exists():
+        try:
+            data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+            p = data.get("cs2_path")
+            if p:
+                cfg = Path(p) / "game" / "csgo" / "cfg"
+                if cfg.exists():
+                    return cfg
+        except Exception:
+            pass
+    return None
 
-STYLE_INPUT = (
-    f"background: {STYLE_SURFACE}; color: {STYLE_TEXT}; border: 1px solid #444;"
-    "border-radius: 4px; padding: 3px 6px; font-family: monospace; font-size: 12px;"
-)
-STYLE_BTN_SECONDARY = (
-    f"background: {STYLE_SURFACE}; color: {STYLE_TEXT}; border-radius: 4px; padding: 5px 12px;"
-)
-STYLE_BTN_PRIMARY = (
-    f"background: {STYLE_ACCENT}; color: #1e1e2e; font-weight: bold;"
-    "border-radius: 4px; padding: 6px 16px;"
-)
 
-PRESET_SNIPPETS: list[tuple[str, str, str]] = [
-    (
-        "Crosshair: Schwarz beim Schiessen",
-        "Faerbung beim Druecken von Maus1 (schwarz/50%) und Loslassen (weiss/90%)",
-        "// Aktiviert benutzerdefinierte Crosshair-Farben und Alpha-Werte\n"
-        "cl_crosshaircolor 5\n"
-        "cl_crosshairusealpha 1\n"
-        "\n"
-        "// Alias fuer das Halten der Maustaste (Schwarz & 50% Opacity)\n"
-        'alias "+shoot_custom" "+attack; cl_crosshaircolor_r 0; cl_crosshaircolor_g 0; cl_crosshaircolor_b 0; cl_crosshairalpha 128"\n'
-        "\n"
-        "// Alias fuer das Loslassen der Maustaste (Weiss & 90% Opacity)\n"
-        'alias "-shoot_custom" "-attack; cl_crosshaircolor_r 255; cl_crosshaircolor_g 255; cl_crosshaircolor_b 255; cl_crosshairalpha 230"\n'
-        "\n"
-        "// Bind auf die linke Maustaste\n"
-        'bind "mouse1" "+shoot_custom"',
-    ),
-    (
-        "Jumpthrow Bind",
-        "Wirft Granate gleichzeitig mit dem Sprung (Standard: ALT)",
-        'alias "+jumpthrow" "+jump; -attack"\n'
-        'alias "-jumpthrow" "-jump"\n'
-        'bind "alt" "+jumpthrow"',
-    ),
-    (
-        "Quick Switch Bind",
-        "Schnell zur Pistole und zurueck wechseln",
-        'alias "quickswitch" "slot2; wait 5; lastinv"\n'
-        'bind "q" "quickswitch"',
-    ),
-    (
-        "Noclip Toggle (Practice)",
-        "Noclip an/aus fuer Uebungsserver",
-        'bind "n" "noclip"',
-    ),
-    (
-        "Net Graph Toggle",
-        "Netzwerkstatistiken ein-/ausblenden",
-        'bind "F3" "toggle net_graph 0 1"',
-    ),
-    (
-        "Voice Enable Toggle",
-        "Teamspeak stumm schalten und wieder aktivieren",
-        'alias "muteteam" "voice_enable 0; alias voicetoggle unmuteteam"\n'
-        'alias "unmuteteam" "voice_enable 1; alias voicetoggle muteteam"\n'
-        'alias "voicetoggle" "muteteam"\n'
-        'bind "F4" "voicetoggle"',
-    ),
-]
+# ── Styles ─────────────────────────────────────────────────────────────────
+CARD = "QFrame{background:#24273a;border:1px solid #313244;border-radius:12px;}"
+EDITOR_STYLE = """
+    QPlainTextEdit {
+        background:#1e1e2e;
+        color:#a6e3a1;
+        border:1px solid #45475a;
+        border-radius:8px;
+        padding:10px;
+        font-family:'Consolas','Courier New',monospace;
+        font-size:13px;
+    }
+    QPlainTextEdit:focus { border:1px solid #89b4fa; }
+"""
+INPUT_STYLE = """
+    QLineEdit {
+        background:#1e1e2e;
+        color:#cdd6f4;
+        border:1px solid #45475a;
+        border-radius:6px;
+        padding:6px 10px;
+        font-size:12px;
+        font-family:'Consolas',monospace;
+    }
+    QLineEdit:focus { border:1px solid #89b4fa; }
+"""
+COMBO_STYLE = """
+    QComboBox {
+        background:#1e1e2e;
+        color:#cdd6f4;
+        border:1px solid #45475a;
+        border-radius:6px;
+        padding:5px 10px;
+        font-size:12px;
+        min-width:180px;
+    }
+    QComboBox::drop-down { border:none; }
+    QComboBox QAbstractItemView {
+        background:#24273a;
+        color:#cdd6f4;
+        border:1px solid #45475a;
+        selection-background-color:#313244;
+    }
+"""
+BTN_PRIMARY = """
+    QPushButton {
+        background:#89b4fa;
+        color:#1e1e2e;
+        border:none;
+        border-radius:8px;
+        padding:10px 24px;
+        font-size:13px;
+        font-weight:bold;
+    }
+    QPushButton:hover { background:#b4d0ff; }
+    QPushButton:disabled { background:#45475a; color:#6c7086; }
+"""
+BTN_SEC = """
+    QPushButton {
+        background:#313244;
+        color:#cdd6f4;
+        border:none;
+        border-radius:6px;
+        padding:7px 14px;
+        font-size:12px;
+    }
+    QPushButton:hover { background:#45475a; }
+"""
 
 
 class SnippetPanel(QWidget):
-    """UI um rohe CFG-Schnipsel (alias, bind, Kommentare) in .cfg-Dateien einzufuegen."""
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._build_ui()
+        self._build()
+        self._refresh_cfg_path()
 
-    def _build_ui(self):
+    def _build(self):
         root = QVBoxLayout(self)
-        root.setContentsMargins(24, 24, 24, 24)
-        root.setSpacing(14)
+        root.setContentsMargins(32, 28, 32, 28)
+        root.setSpacing(18)
+        self.setStyleSheet("background:#181825;")
 
-        title = QLabel("\u270f\ufe0f  CFG Snippet Injector")
-        title.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {STYLE_TEXT};")
+        # ── Header ──────────────────────────────────────────────────────
+        title = QLabel("✏️  CFG Snippet Injector")
+        title.setStyleSheet("color:#cdd6f4;font-size:18px;font-weight:bold;")
         root.addWidget(title)
 
-        subtitle = QLabel(
-            "Fuege beliebige CFG-Bloecke (alias, bind, Kommentare) direkt in .cfg-Dateien ein."
+        sub = QLabel("Schreibe oder füge beliebigen CFG-Code ein und speichere ihn direkt in deinen CS2 cfg-Ordner.")
+        sub.setStyleSheet("color:#6c7086;font-size:12px;")
+        sub.setWordWrap(True)
+        root.addWidget(sub)
+
+        # ── Zieldatei ───────────────────────────────────────────────────
+        card = QFrame()
+        card.setStyleSheet(CARD)
+        cv = QVBoxLayout(card)
+        cv.setContentsMargins(20, 16, 20, 16)
+        cv.setSpacing(10)
+
+        file_hdr = QLabel("🎯  Zieldatei")
+        file_hdr.setStyleSheet("color:#cdd6f4;font-size:13px;font-weight:bold;background:transparent;border:none;")
+        cv.addWidget(file_hdr)
+
+        file_row = QHBoxLayout()
+        file_lbl = QLabel("Dateiname:")
+        file_lbl.setStyleSheet("color:#a6adc8;font-size:12px;background:transparent;border:none;")
+        file_lbl.setFixedWidth(80)
+
+        self._filename_combo = QComboBox()
+        self._filename_combo.setStyleSheet(COMBO_STYLE)
+        self._filename_combo.setEditable(True)
+        self._filename_combo.addItems(["autoexec.cfg", "config.cfg"])
+        self._filename_combo.setCurrentText("autoexec.cfg")
+
+        file_row.addWidget(file_lbl)
+        file_row.addWidget(self._filename_combo)
+        file_row.addStretch()
+        cv.addLayout(file_row)
+
+        # Pfad-Anzeige
+        self._path_lbl = QLabel("")
+        self._path_lbl.setStyleSheet(
+            "color:#585b70;font-size:10px;font-family:'Consolas',monospace;"
+            "background:transparent;border:none;"
         )
-        subtitle.setStyleSheet(f"color: {STYLE_SUBTEXT}; font-size: 12px;")
-        root.addWidget(subtitle)
+        cv.addWidget(self._path_lbl)
 
-        sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
-        sep.setStyleSheet("color: #313244;")
-        root.addWidget(sep)
+        root.addWidget(card)
 
-        # --- Preset-Auswahl ---
-        preset_group = QGroupBox("\U0001f4cb Vorlagen")
-        preset_group.setStyleSheet(
-            f"QGroupBox {{ color: {STYLE_TEXT}; border: 1px solid #313244;"
-            "border-radius: 6px; margin-top: 8px; padding: 10px; }}"
-            "QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }"
-        )
-        preset_layout = QHBoxLayout(preset_group)
-
-        self._preset_combo = QComboBox()
-        self._preset_combo.setStyleSheet(
-            f"background: {STYLE_SURFACE}; color: {STYLE_TEXT}; border-radius: 4px; padding: 4px;"
-        )
-        self._preset_combo.addItem("-- Vorlage waehlen --")
-        for name, _, _ in PRESET_SNIPPETS:
-            self._preset_combo.addItem(name)
-        preset_layout.addWidget(self._preset_combo, 1)
-
-        load_preset_btn = QPushButton("Laden")
-        load_preset_btn.setStyleSheet(STYLE_BTN_SECONDARY)
-        load_preset_btn.clicked.connect(self._load_preset)
-        preset_layout.addWidget(load_preset_btn)
-
-        root.addWidget(preset_group)
-
-        # --- Kommentar-Header ---
-        header_row = QHBoxLayout()
-        header_lbl = QLabel("Kommentar-Header (optional):")
-        header_lbl.setStyleSheet(f"color: {STYLE_TEXT};")
-        header_row.addWidget(header_lbl)
-        self._header_input = QLineEdit()
-        self._header_input.setPlaceholderText("z.B.  Crosshair Farbwechsel beim Schiessen")
-        self._header_input.setStyleSheet(STYLE_INPUT)
-        header_row.addWidget(self._header_input, 1)
-        root.addLayout(header_row)
-
-        # --- Snippet-Editor ---
-        editor_lbl = QLabel("CFG-Schnipsel:")
-        editor_lbl.setStyleSheet(f"color: {STYLE_TEXT};")
+        # ── Editor ──────────────────────────────────────────────────────
+        editor_lbl = QLabel("📝  CFG-Code")
+        editor_lbl.setStyleSheet("color:#cdd6f4;font-size:13px;font-weight:bold;")
         root.addWidget(editor_lbl)
 
-        self._editor = QTextEdit()
-        self._editor.setStyleSheet(
-            f"background: #11111b; color: {STYLE_GREEN}; font-family: monospace;"
-            "font-size: 12px; border: 1px solid #313244; border-radius: 4px;"
-        )
+        self._editor = QPlainTextEdit()
+        self._editor.setStyleSheet(EDITOR_STYLE)
         self._editor.setPlaceholderText(
-            '// Trage hier deinen CFG-Block ein, z.B.:\n'
-            'alias "+shoot_custom" "+attack; cl_crosshaircolor_r 0"\n'
-            'bind "mouse1" "+shoot_custom"'
+            "// Hier CFG-Code eingeben, z.B.:\n"
+            "bind \"mouse1\" \"+shoot_custom\"\n"
+            "alias \"+shoot_custom\" \"+attack; cl_crosshaircolor_r 0; ...\""
         )
-        self._editor.setMinimumHeight(180)
+        self._editor.setMinimumHeight(300)
         root.addWidget(self._editor, 1)
 
-        # --- Ziel-Datei ---
-        target_row = QHBoxLayout()
-        target_lbl = QLabel("Ziel .cfg-Datei:")
-        target_lbl.setStyleSheet(f"color: {STYLE_TEXT}; min-width: 110px;")
-        target_row.addWidget(target_lbl)
-
-        self._target_input = QLineEdit()
-        self._target_input.setPlaceholderText("configs/crosshair/autoexec.cfg  oder Pfad waehlen")
-        self._target_input.setStyleSheet(STYLE_INPUT)
-        target_row.addWidget(self._target_input, 1)
-
-        browse_btn = QPushButton("\U0001f4c2 Durchsuchen")
-        browse_btn.setStyleSheet(STYLE_BTN_SECONDARY)
-        browse_btn.clicked.connect(self._browse_target)
-        target_row.addWidget(browse_btn)
-
-        new_file_btn = QPushButton("+ Neue Datei")
-        new_file_btn.setStyleSheet(STYLE_BTN_SECONDARY)
-        new_file_btn.clicked.connect(self._new_file)
-        target_row.addWidget(new_file_btn)
-
-        root.addLayout(target_row)
-
-        # --- Modus-Auswahl + Inject-Button ---
-        action_row = QHBoxLayout()
-
-        mode_lbl = QLabel("Einfuegemodus:")
-        mode_lbl.setStyleSheet(f"color: {STYLE_TEXT};")
-        action_row.addWidget(mode_lbl)
-
+        # ── Modus ───────────────────────────────────────────────────────
+        mode_row = QHBoxLayout()
+        mode_lbl = QLabel("Einfügemodus:")
+        mode_lbl.setStyleSheet("color:#a6adc8;font-size:12px;")
         self._mode_combo = QComboBox()
-        self._mode_combo.setStyleSheet(
-            f"background: {STYLE_SURFACE}; color: {STYLE_TEXT}; border-radius: 4px; padding: 4px;"
-        )
-        self._mode_combo.addItems([
-            "Anhaengen (append)",
-            "Voranstellen (prepend)",
-            "Ueberschreiben (overwrite)",
-        ])
-        action_row.addWidget(self._mode_combo)
-        action_row.addStretch()
+        self._mode_combo.setStyleSheet(COMBO_STYLE)
+        self._mode_combo.addItems(["Anhängen (append)", "Voranstellen (prepend)", "Überschreiben (overwrite)"])
+        mode_row.addWidget(mode_lbl)
+        mode_row.addWidget(self._mode_combo)
+        mode_row.addStretch()
+        root.addLayout(mode_row)
 
-        clear_btn = QPushButton("\U0001f5d1 Editor leeren")
-        clear_btn.setStyleSheet(STYLE_BTN_SECONDARY)
-        clear_btn.clicked.connect(self._editor.clear)
-        action_row.addWidget(clear_btn)
+        # ── Buttons ─────────────────────────────────────────────────────
+        btn_row = QHBoxLayout()
+        btn_save = QPushButton("💾  In CS2 speichern")
+        btn_save.setStyleSheet(BTN_PRIMARY)
+        btn_save.setFixedHeight(42)
+        btn_save.clicked.connect(self._save)
 
-        inject_btn = QPushButton("\U0001f489 In CFG einfuegen")
-        inject_btn.setStyleSheet(STYLE_BTN_PRIMARY)
-        inject_btn.clicked.connect(self._inject)
-        action_row.addWidget(inject_btn)
+        btn_clear = QPushButton("🗑  Editor leeren")
+        btn_clear.setStyleSheet(BTN_SEC)
+        btn_clear.setFixedHeight(42)
+        btn_clear.clicked.connect(self._editor.clear)
 
-        root.addLayout(action_row)
+        btn_row.addWidget(btn_save)
+        btn_row.addWidget(btn_clear)
+        btn_row.addStretch()
+        root.addLayout(btn_row)
 
-        self._status_lbl = QLabel("")
-        self._status_lbl.setStyleSheet(f"color: {STYLE_GREEN}; font-size: 11px;")
-        self._status_lbl.setWordWrap(True)
-        root.addWidget(self._status_lbl)
+        # ── Status ──────────────────────────────────────────────────────
+        self._status = QLabel("")
+        self._status.setStyleSheet("font-size:12px;")
+        root.addWidget(self._status)
 
-    def _load_preset(self):
-        idx = self._preset_combo.currentIndex() - 1
-        if idx < 0:
-            return
-        name, description, code = PRESET_SNIPPETS[idx]
-        self._editor.setPlainText(code)
-        self._header_input.setText(description)
-        self._status_lbl.setText(f"\u2705 Vorlage geladen: {name}")
-        self._status_lbl.setStyleSheet(f"color: {STYLE_GREEN}; font-size: 11px;")
+        # Dateiname → Pfad aktualisieren
+        self._filename_combo.currentTextChanged.connect(self._refresh_cfg_path)
 
-    def _browse_target(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "CFG-Datei oeffnen", str(CONFIGS_ROOT), "CFG Files (*.cfg);;All Files (*)"
-        )
-        if path:
-            self._target_input.setText(path)
-
-    def _new_file(self):
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Neue CFG-Datei erstellen", str(CONFIGS_ROOT), "CFG Files (*.cfg)"
-        )
-        if path:
-            if not path.endswith(".cfg"):
-                path += ".cfg"
-            self._target_input.setText(path)
-
-    def _get_mode(self) -> str:
-        return ["append", "prepend", "overwrite"][self._mode_combo.currentIndex()]
-
-    def _inject(self):
-        snippet = self._editor.toPlainText().strip()
-        if not snippet:
-            QMessageBox.warning(self, "Leerer Schnipsel", "Bitte zuerst einen CFG-Block eingeben.")
-            return
-
-        raw_target = self._target_input.text().strip()
-        if not raw_target:
-            QMessageBox.warning(self, "Kein Ziel", "Bitte eine Ziel-.cfg-Datei angeben.")
-            return
-
-        target_path = Path(raw_target)
-        if not target_path.is_absolute():
-            target_path = CONFIGS_ROOT / target_path
-
-        header = self._header_input.text().strip()
-        mode = self._get_mode()
-
-        try:
-            inject_snippet(snippet, target_path, mode=mode, header_comment=header)
-            self._status_lbl.setText(
-                f"\u2705 Schnipsel eingefuegt ({mode}) \u2192 {target_path}"
+    # ── Helpers ─────────────────────────────────────────────────────────────
+    def _refresh_cfg_path(self):
+        cfg_dir = _get_cfg_dir()
+        fname = self._filename_combo.currentText().strip() or "autoexec.cfg"
+        if cfg_dir:
+            full = cfg_dir / fname
+            self._path_lbl.setText(f"→  {full}")
+        else:
+            self._path_lbl.setText("⚠️  CS2-Pfad nicht gefunden — bitte im Dashboard setzen.")
+            self._path_lbl.setStyleSheet(
+                "color:#fab387;font-size:10px;font-family:'Consolas',monospace;"
+                "background:transparent;border:none;"
             )
-            self._status_lbl.setStyleSheet(f"color: {STYLE_GREEN}; font-size: 11px;")
-        except Exception as exc:
-            self._status_lbl.setText(f"\u274c Fehler: {exc}")
-            self._status_lbl.setStyleSheet(f"color: {STYLE_RED}; font-size: 11px;")
+
+    def _save(self):
+        code = self._editor.toPlainText().strip()
+        if not code:
+            self._set_status("⚠️  Editor ist leer.", ok=False)
+            return
+
+        cfg_dir = _get_cfg_dir()
+        if cfg_dir is None:
+            self._set_status(
+                "❌  CS2-Pfad nicht gefunden. Bitte im Dashboard setzen.", ok=False
+            )
+            return
+
+        fname = self._filename_combo.currentText().strip()
+        if not fname:
+            fname = "autoexec.cfg"
+        if not fname.endswith(".cfg"):
+            fname += ".cfg"
+
+        target = cfg_dir / fname
+        mode_idx = self._mode_combo.currentIndex()  # 0=append 1=prepend 2=overwrite
+
+        existing = target.read_text(encoding="utf-8") if target.exists() else ""
+        block = code + "\n"
+
+        if mode_idx == 2:  # overwrite
+            target.write_text(block, encoding="utf-8")
+        elif mode_idx == 1:  # prepend
+            target.write_text(block + "\n" + existing, encoding="utf-8")
+        else:  # append (default)
+            sep = "\n" if existing.endswith("\n") else "\n\n"
+            target.write_text(existing + sep + block, encoding="utf-8")
+
+        self._set_status(f"✅  Gespeichert: {target}", ok=True)
+        self._refresh_cfg_path()
+
+    def _set_status(self, msg: str, ok: bool):
+        color = "#a6e3a1" if ok else "#f38ba8"
+        self._status.setText(msg)
+        self._status.setStyleSheet(f"font-size:12px; color:{color};")
