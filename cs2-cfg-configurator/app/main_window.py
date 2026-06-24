@@ -13,6 +13,7 @@ from app.modules.cfg_editor.view import CfgEditorPage
 from app.modules.bind_switcher.view import BindManagerPage
 from app.modules.about.view import AboutPage
 from app.modules.settings_compare.view import SettingsComparePage
+from app.modules.snippet_panel.view import SnippetPanel
 from app import settings_manager
 
 
@@ -44,13 +45,14 @@ class MainWindow(QMainWindow):
         self._pages = {
             "dashboard":          DashboardPage(),
             "cfg_editor":         CfgEditorPage(),
+            "snippet_panel":      SnippetPanel(),
             "command_viewer":     CommandViewerPage(),
             "bind_switcher":      BindManagerPage(),
             "settings_reader":    SettingsReaderPage(),
             "settings_compare":   SettingsComparePage(),
             "buy_binds_viewer":   BuyBindsViewer(),
             "buy_binds_editor":   BuyBindsPage(),
-            "buy_binds_header":   ModulePage("🛒  Buy Binds"),
+            "buy_binds_header":   ModulePage("\U0001f6d2  Buy Binds"),
             "CFG_MAN_settings":   SettingsPage(self),
             "about":              AboutPage(),
         }

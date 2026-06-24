@@ -18,21 +18,22 @@ class SidebarCategory:
 
 
 NAV = [
-    SidebarItem("🏠  Dashboard",         "dashboard"),
-    SidebarItem("⚙️  CFG Editor",        "cfg_editor"),
-    SidebarItem("🔍  Commands",          "command_viewer"),
-    SidebarItem("🔗  Bind Manager",      "bind_switcher"),
-    SidebarItem("📶  Aktive Settings",   "settings_reader"),
-    SidebarItem("🔄  Settings vergleichen", "settings_compare"),
+    SidebarItem("\U0001f3e0  Dashboard",             "dashboard"),
+    SidebarItem("\u2699\ufe0f  CFG Editor",           "cfg_editor"),
+    SidebarItem("\u270f\ufe0f  Snippet Injector",     "snippet_panel"),
+    SidebarItem("\U0001f50d  Commands",              "command_viewer"),
+    SidebarItem("\U0001f517  Bind Manager",          "bind_switcher"),
+    SidebarItem("\U0001f4f6  Aktive Settings",       "settings_reader"),
+    SidebarItem("\U0001f504  Settings vergleichen",  "settings_compare"),
     SidebarCategory(
-        "🛒  Buy Binds", "buy_binds_header",
+        "\U0001f6d2  Buy Binds", "buy_binds_header",
         children=[
-            SidebarItem("📋  View Binds", "buy_binds_viewer", indent=True),
-            SidebarItem("✏️   Edit Binds", "buy_binds_editor", indent=True),
+            SidebarItem("\U0001f4cb  View Binds", "buy_binds_viewer", indent=True),
+            SidebarItem("\u270f\ufe0f   Edit Binds",  "buy_binds_editor", indent=True),
         ]
     ),
-    SidebarItem("🎮  Settings",          "CFG_MAN_settings"),
-    SidebarItem("💬  Feedback & About",  "about"),
+    SidebarItem("\U0001f3ae  Settings",             "CFG_MAN_settings"),
+    SidebarItem("\U0001f4ac  Feedback & About",     "about"),
 ]
 
 
@@ -71,16 +72,17 @@ class SidebarButton(QPushButton):
 
 class Sidebar(QWidget):
     MODULES = [
-        ("🏠  Dashboard",            "dashboard"),
-        ("⚙️  CFG Editor",           "cfg_editor"),
-        ("🔍  Commands",             "command_viewer"),
-        ("🔗  Bind Manager",         "bind_switcher"),
-        ("📶  Aktive Settings",      "settings_reader"),
-        ("🔄  Settings vergleichen",  "settings_compare"),
-        ("📋  View Binds",           "buy_binds_viewer"),
-        ("✏️   Edit Binds",            "buy_binds_editor"),
-        ("🎮  Settings",             "CFG_MAN_settings"),
-        ("💬  Feedback & About",     "about"),
+        ("\U0001f3e0  Dashboard",             "dashboard"),
+        ("\u2699\ufe0f  CFG Editor",           "cfg_editor"),
+        ("\u270f\ufe0f  Snippet Injector",     "snippet_panel"),
+        ("\U0001f50d  Commands",              "command_viewer"),
+        ("\U0001f517  Bind Manager",          "bind_switcher"),
+        ("\U0001f4f6  Aktive Settings",       "settings_reader"),
+        ("\U0001f504  Settings vergleichen",  "settings_compare"),
+        ("\U0001f4cb  View Binds",            "buy_binds_viewer"),
+        ("\u270f\ufe0f   Edit Binds",           "buy_binds_editor"),
+        ("\U0001f3ae  Settings",             "CFG_MAN_settings"),
+        ("\U0001f4ac  Feedback & About",     "about"),
     ]
 
     def __init__(self, main_window, parent=None):
